@@ -160,17 +160,27 @@ class Leveling(commands.Cog):
 
     @commands.command(name="set_channel", help="Настроить канал для отправки сообщений о достижении уровня.")
     @commands.has_permissions(administrator=True)
-    async def set_channel(self, ctx, channel: disnake.TextChannel):
+    async def set_channel(self, ctx, channel: disnake.TextChannel = None):
         """Настройка канала для сообщений о достижении уровня на текущем сервере."""
+        if channel is None:
+            await ctx.send(
+                "❌ Вы не указали канал. Пожалуйста, укажите текстовый канал, где бот будет отправлять сообщения о достижении уровня.\n"
+                "Пример использования: `!set_channel #канал`"
+            )
+            return
+
+        if not isinstance(channel, disnake.TextChannel):
+            await ctx.send(
+                "❌ Указанный канал не является текстовым каналом. Пожалуйста, укажите текстовый канал.\n"
+                "Пример использования: `!set_channel #канал`"
+            )
+            return
+
         guild_id = ctx.guild.id
         level_up_channels[guild_id] = channel.id
         self.save_level_up_channels()
-        await ctx.send(f"Канал для сообщений уровня на этом сервере установлен: {channel.mention}")
 
-    def cog_unload(self):
-        """Сохраняем данные пользователей при выгрузке cog."""
-        self.save_user_data()
-        self.save_level_up_channels()
+        await ctx.send(f"✅ Канал для сообщений уровня на этом сервере установлен: {channel.mention}")
 
 
 def setup(bot):
