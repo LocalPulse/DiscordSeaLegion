@@ -5,7 +5,7 @@ import os
 import json
 from config import user_data
 
-LEVEL_UP_CHANNELS_FILE = "level_up_channels.json"
+LEVEL_UP_CHANNELS_FILE = "channels.json"
 voice_times = {}
 level_up_channels = {}
 
