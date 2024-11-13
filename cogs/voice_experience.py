@@ -60,7 +60,6 @@ class VoiceExperience(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_voice_activity(self):
-        # Проверка наличия подключенных гильдий
         if not self.bot.guilds:
             print("[WARNING] Бот не подключен ни к одной гильдии.")
             return
@@ -83,18 +82,6 @@ class VoiceExperience(commands.Cog):
                         voice_time_data[str(member.id)] += time_in_channel // 60
 
                         self.save_voice_time_data()
-
-                        guild_id = str(guild.id)
-                        if guild_id in level_up_channels:
-                            channel_id = level_up_channels[guild_id]
-                            channel = self.bot.get_channel(int(channel_id))
-                            if channel:
-                                await self.send_message_to_channel(channel, f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
-                            else:
-                                print(f"[WARNING] Канал с ID {channel_id} не найден, отправка сообщения в первый текстовый канал.")
-                                await self.send_message_to_channel(guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
-                        else:
-                            await self.send_message_to_channel(guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
 
     @check_voice_activity.before_loop
     async def before_check_voice_activity(self):
