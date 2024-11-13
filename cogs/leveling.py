@@ -207,7 +207,7 @@ class Leveling(commands.Cog):
 
             if member:
                 embed.add_field(
-                    name=f"{rank}. {member.display_name}",
+                    name=f"{rank}. {member.mention}",
                     value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
                     inline=False
                 )
