@@ -42,6 +42,7 @@ class Leveling(commands.Cog):
                 with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
                     global level_up_channels
                     level_up_channels = json.load(file)
+                    print(level_up_channels)
             except json.JSONDecodeError:
                 print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
                 level_up_channels = {}
@@ -152,6 +153,7 @@ class Leveling(commands.Cog):
 
             guild_id = message.guild.id
             if guild_id in level_up_channels:
+                print(f"guild_id: ")
                 level_up_channel = self.bot.get_channel(level_up_channels[guild_id])
                 if level_up_channel:
                     await self.send_message_to_channel(level_up_channel, level_up_message)
@@ -258,7 +260,7 @@ class Leveling(commands.Cog):
                 )
             else:
                 embed.add_field(
-                    name=f"{rank}. Пользователь с ID {user_id}",
+                    name=f"{rank}. Пользователь с ID <@{user_id}>",
                     value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
                     inline=False
                 )

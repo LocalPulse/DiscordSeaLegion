@@ -39,34 +39,35 @@ class RoleManagement(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def edit_rank(self, ctx, user: disnake.Member = None, *, args: str = None):
-        """Allows admins to edit a user's rank by setting their level or XP."""
+        """Позволяет администраторам редактировать уровень или XP пользователя."""
 
         if not user:
             await ctx.send(
-                "⚠️ **Ошибка:** Укажите пользователя. Пример команды: `!edit_rank @User 10` или `!edit_rank @User xp=200`.")
+                "⚠️ **Ошибка:** Укажите пользователя. Пример команды: `!edit_rank @User 10` или `!edit_rank @User xp=200`."
+            )
             return
 
         if user.id not in user_data:
             user_data[user.id] = {"xp": 0, "level": 1}
 
-        # Default values for level and xp
+        # Значения по умолчанию для уровня и опыта
         level = None
         xp = None
 
         if args:
-            # Try parsing the arguments
+            # Парсим аргументы
             arg_parts = args.split()
             for part in arg_parts:
                 if part.startswith("xp="):
                     try:
-                        xp = int(part.split("=")[1])  # Get the number after 'xp='
+                        xp = int(part.split("=")[1])
                     except ValueError:
-                        await ctx.send(f"⚠️ **Ошибка:** Невалидное значение для XP: {part.split('=')[1]}.")
+                        await ctx.send(f"⚠️ **Ошибка:** Неверное значение для XP: {part.split('=')[1]}.")
                         return
                 elif part.isdigit():
                     level = int(part)
                 else:
-                    await ctx.send(f"⚠️ **Ошибка:** Неправильный аргумент: {part}.")
+                    await ctx.send(f"⚠️ **Ошибка:** Неверный аргумент: {part}.")
                     return
 
         if level is not None:
@@ -89,22 +90,26 @@ class RoleManagement(commands.Cog):
         new_level = user_data[user.id]["level"]
         new_xp = user_data[user.id]["xp"]
 
-        # Assign role based on level (if applicable)
+        # Назначаем роли на основе текущего и всех уровней ниже
         user_roles = [role.id for role in user.roles]
-        assigned_role = None
+        assigned_roles = []
 
         for check_role_id, levels in self.role_assignments.items():
-            if int(check_role_id) in user_roles:  # Checking for the role
-                assign_role_id = levels.get(str(new_level))
-                if assign_role_id:
-                    role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
-                    if role and role not in user.roles:
-                        await user.add_roles(role)
-                        assigned_role = role
-                        await ctx.send(f"✅ {user.mention} теперь получил роль: **{role.name}** на уровне {new_level}!")
+            if int(check_role_id) in user_roles:
+                for lvl, assign_role_id in levels.items():
+                    if int(lvl) <= new_level:
+                        role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+                        if role and role not in user.roles:
+                            await user.add_roles(role)
+                            assigned_roles.append(role)
 
-        if not assigned_role:
-            await ctx.send(f"ℹ️ Для {user.mention} не найдено подходящей роли на уровне {new_level}.")
+        if assigned_roles:
+            role_names = ", ".join([role.name for role in assigned_roles])
+            await ctx.send(
+                f"✅ {user.mention} получил роли, связанные с уровнем {new_level} и ниже: **{role_names}**."
+            )
+        else:
+            await ctx.send(f"ℹ️ Для {user.mention} не найдено дополнительных ролей для уровня {new_level} и ниже.")
 
         await ctx.send(
             f"📈 **Уровень и опыт обновлены:**\n"
