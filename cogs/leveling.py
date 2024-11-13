@@ -11,7 +11,6 @@ VOICE_TIME_FILE = "voice_time_data.json"
 
 level_up_channels = {}
 
-
 class Leveling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -34,6 +33,13 @@ class Leveling(commands.Cog):
                         user_id, level, xp = parts
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
+    def load_voice_time_data(self):
+        """Загружаем данные времени голосовых каналов из JSON файла."""
+        if os.path.exists(VOICE_TIME_FILE):
+            with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
+                return json.load(file)
+        return {}
+
     def load_level_up_channels(self):
         if os.path.exists(CHANNELS_FILE):
             try:
@@ -52,13 +58,6 @@ class Leveling(commands.Cog):
                 json.dump(level_up_channels, file, indent=4)
         except Exception as e:
             print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
-
-    def load_voice_time_data(self):
-        """Загружаем данные времени голосовых каналов из JSON файла."""
-        if os.path.exists(VOICE_TIME_FILE):
-            with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
-                return json.load(file)
-        return {}  # Возвращаем пустой словарь, если файл не существует
 
     def assign_role_based_on_level(self, member, new_level):
         user_roles = [role.id for role in member.roles]
@@ -118,7 +117,6 @@ class Leveling(commands.Cog):
         user_id = inter.author.id
         user_data_entry = user_data.get(user_id)
 
-        # Загружаем данные времени голосовых каналов
         voice_time_data = self.load_voice_time_data()
         total_voice_time = voice_time_data.get(str(user_id), 0)
 
