@@ -70,31 +70,38 @@ class RoleManagement(commands.Cog):
 
     @commands.command()
     async def show_roles(self, ctx):
-        """Команда для отображения всех привязок ролей и уровней в виде Embed с аватаркой бота."""
+        """Команда для отображения всех привязок ролей и уровней в виде улучшенного Embed с аватаркой бота."""
         if not self.role_assignments:
             await ctx.send("Привязки ролей к уровням не найдены.")
             return
 
         embed = disnake.Embed(
-            title="Привязки ролей к уровням",
-            description="Отображение всех привязок ролей к уровням.",
+            title="⚔️ Привязки Ролей к Уровням",
+            description="🔹 **Детальная информация по привязке ролей к уровням** 🔹",
             color=disnake.Color.blue()
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
+        # Добавление привязок ролей и уровней с улучшенным оформлением
         for check_role_id, levels in self.role_assignments.items():
             role = disnake.utils.get(ctx.guild.roles, id=int(check_role_id))
             role_name = role.name if role else f"ID: {check_role_id}"
 
+            # Формируем содержимое для уровней этой роли
             level_info = ""
-            for level, assign_role_id in levels.items():
+            for level, assign_role_id in sorted(levels.items(), key=lambda x: int(x[0])):
                 assign_role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
                 assign_role_name = assign_role.name if assign_role else f"ID: {assign_role_id}"
-                level_info += f"Уровень {level}: {assign_role_name} (ID: {assign_role_id})\n"
+                level_info += f"🏅 **Уровень {level}** → {assign_role_name} *(ID: {assign_role_id})*\n"
 
-            embed.add_field(name=f"Роль для проверки: {role_name} (ID: {check_role_id})", value=level_info,
-                            inline=False)
+            # Добавляем информацию о роли и уровнях в Embed
+            embed.add_field(
+                name=f"🎖️ Роль для проверки: **{role_name}** *(ID: {check_role_id})*",
+                value=level_info,
+                inline=False
+            )
 
+        embed.set_footer(text="Привязки ролей к уровням в вашей гильдии")
         await ctx.send(embed=embed)
 
 
