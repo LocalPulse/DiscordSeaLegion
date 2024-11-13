@@ -8,7 +8,7 @@ class RoleManagement(commands.Cog):
         self.bot = bot
         self.role_assignments = load_roles()
 
-    @commands.slash_command(description="Изменяет уровень и опыт пользователя")
+    @commands.command()
     @commands.has_permissions(administrator=True)
     async def edit_rank(self, ctx, user: disnake.Member, level: int = None, xp: int = None):
         """Команда для изменения уровня и XP пользователя"""
