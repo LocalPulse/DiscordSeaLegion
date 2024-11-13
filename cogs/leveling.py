@@ -173,51 +173,6 @@ class Leveling(commands.Cog):
 
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
-
-        for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
-            member = inter.guild.get_member(user_id)
-            if member:
-                embed.add_field(
-                    name=f"{rank}. {member.display_name}",
-                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
-                    inline=False
-                )
-
-        await inter.response.send_message(embed=embed)
-
-    @commands.command(name="leaderboard_dub")
-    async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
-        """Отображает топ-10 пользователей по количеству опыта."""
-
-        # Убедитесь, что user_data существует и содержит данные
-        if not user_data or len(user_data) == 0:
-            await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
-            return
-
-        # Сортируем пользователей по опыту
-        sorted_users = sorted(user_data.items(), key=lambda x: x[1]['xp'], reverse=True)
-
-        # Создаем embed для вывода таблицы лидеров
-        embed = disnake.Embed(
-            title="🏆 Таблица Лидеров по Опыту",
-            description="Топ-10 пользователей с наибольшим количеством опыта!",
-            color=disnake.Color.gold()
-        )
-
-        # Добавляем поля в embed для топ-10 пользователей
-        for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
-            member = inter.guild.get_member(user_id)  # Получаем участника из гильдии
-            if member:
-                embed.add_field(
-                    name=f"{rank}. {member.display_name}",
-                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
-                    inline=False
-                )
-
-        # Отправляем embed сообщение с таблицей лидеров
-        await inter.response.send_message(embed=embed)
-
-
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
             member = inter.guild.get_member(user_id)
             if member:
