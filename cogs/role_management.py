@@ -35,8 +35,10 @@ class RoleManagement(commands.Cog):
             await inter.channel.send(f"{user.mention} нету ролей.")
 
         if role_to_check:
+            await inter.channel.send("1")
             role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
             if role_for_level:
+                await inter.channel.send("2")
                 role = disnake.utils.get(inter.guild.roles, name=role_for_level)
                 if role and role not in roles:
                     await user.add_roles(role)
