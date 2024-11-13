@@ -10,7 +10,8 @@ class RoleManagement(commands.Cog):
 
     @commands.slash_command(description="Изменяет уровень и опыт пользователя")
     @commands.has_permissions(administrator=True)
-    async def edit_rank(self, inter: disnake.ApplicationCommandInteraction, user: disnake.Member, level: int = None, xp: int = None):
+    async def edit_rank(self, ctx, user: disnake.Member, level: int = None, xp: int = None):
+        """Команда для изменения уровня и XP пользователя"""
         if user.id not in user_data:
             user_data[user.id] = {"xp": 0, "level": 1}
 
@@ -28,51 +29,57 @@ class RoleManagement(commands.Cog):
         roles = user.roles
         role_to_check = None
 
-        if any(role.name == "Дозорный" for role in roles):
-            role_to_check = "duty_guard"
-        elif any(role.name == "Пират" for role in roles):
-            role_to_check = "pirate"
-        else:
-            await inter.channel.send(f"{user.mention} не имеет ролей.")
+        # Определяем категорию роли по ID
+        for role in roles:
+            if role.id in self.role_assignments.get("duty_guard", {}).keys():
+                role_to_check = "duty_guard"
+                break
+            elif role.id in self.role_assignments.get("pirate", {}).keys():
+                role_to_check = "pirate"
+                break
+
+        if not role_to_check:
+            await ctx.send(f"{user.mention} не имеет привязанных ролей.")
 
         if role_to_check:
             role_for_level = self.role_assignments.get(role_to_check, {}).get(new_level)
 
+            # Удаляем более высокие уровни ролей, если они есть
             for role in roles:
-                if role.name.startswith("Дозорный") or role.name.startswith("Пират"):
-                    level_in_role = int(role.name.split()[-1])
-                    if level_in_role > new_level:
+                if role.id in self.role_assignments.get(role_to_check, {}).values():
+                    level_in_role = list(self.role_assignments.get(role_to_check, {}).keys())[list(self.role_assignments.get(role_to_check, {}).values()).index(role.id)]
+                    if int(level_in_role) > new_level:
                         await user.remove_roles(role)
-                        await inter.channel.send(f"{user.mention} потерял роль: {role.name}.")
+                        await ctx.send(f"{user.mention} потерял роль: {role.name}.")
 
             if not role_for_level:
-                previous_levels = sorted([lvl for lvl in self.role_assignments.get(role_to_check, {}).keys() if lvl < new_level], reverse=True)
+                previous_levels = sorted([lvl for lvl in self.role_assignments.get(role_to_check, {}).keys() if int(lvl) < new_level], reverse=True)
 
                 if previous_levels:
                     closest_level = previous_levels[0]
-                    role_for_level = self.role_assignments[role_to_check].get(closest_level)
+                    role_for_level = self.role_assignments[role_to_check].get(str(closest_level))
 
             if role_for_level:
-                role = disnake.utils.get(inter.guild.roles, name=role_for_level)
+                role = disnake.utils.get(ctx.guild.roles, id=int(role_for_level))
                 if role and role not in roles:
                     await user.add_roles(role)
-                    await inter.channel.send(f"{user.mention} получил роль: {role_for_level}.")
+                    await ctx.send(f"{user.mention} получил роль: {role.name}.")
                 else:
-                    await inter.channel.send(f"{user.mention} уже имеет роль: {role_for_level}.")
+                    await ctx.send(f"{user.mention} уже имеет роль: {role.name}.")
 
-        await inter.response.send_message(f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}.")
+        await ctx.send(f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}.")
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def set_roles(self, ctx, role_category: str, level: int, role_name: str):
-        """Команда для настройки привязки ролей к уровням"""
+    async def set_roles(self, ctx, role_category: str, level: int, role_id: int):
+        """Команда для настройки привязки ролей к уровням по ID роли"""
         if role_category not in self.role_assignments:
             self.role_assignments[role_category] = {}
 
-        self.role_assignments[role_category][level] = role_name
+        self.role_assignments[role_category][level] = role_id
         save_roles(self.role_assignments)
 
-        await ctx.send(f"Роль для категории {role_category} на уровне {level} обновлена на {role_name}.")
+        await ctx.send(f"Роль для категории {role_category} на уровне {level} обновлена на роль с ID {role_id}.")
 
 def setup(bot):
     bot.add_cog(RoleManagement(bot))
