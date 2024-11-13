@@ -11,7 +11,6 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Загружаем коги
 bot.load_extension("cogs.leveling")
 bot.load_extension("cogs.role_management")
 
