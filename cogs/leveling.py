@@ -15,7 +15,7 @@ class Leveling(commands.Cog):
         self.bot = bot
         self.role_assignments = load_roles()
         self.load_user_data()
-        self.load_level_up_channels()  # Загрузка настроек канала из файла
+        self.load_level_up_channels()
 
     def save_user_data(self):
         """Сохраняем данные пользователя в текстовый файл."""
@@ -42,9 +42,9 @@ class Leveling(commands.Cog):
                     level_up_channels = json.load(file)
             except json.JSONDecodeError:
                 print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
-                level_up_channels = {}  # В случае ошибки и пустого или поврежденного файла, используем пустой словарь.
+                level_up_channels = {}
         else:
-            level_up_channels = {}  # Если файл не существует, создаем пустой словарь.
+            level_up_channels = {}
 
     def save_level_up_channels(self):
         """Сохраняем настройки каналов в JSON-файл."""
