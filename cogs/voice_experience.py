@@ -72,7 +72,7 @@ class VoiceExperience(commands.Cog):
                         voice_times[member.id] = time.time()
 
                     time_in_channel = time.time() - voice_times[member.id]
-                    xp_gained = int(time_in_channel // 30)
+                    xp_gained = int(time_in_channel // 60)
 
                     if xp_gained > 0:
                         user_data[member.id]["xp"] += xp_gained
@@ -105,7 +105,7 @@ class VoiceExperience(commands.Cog):
         if after.channel is None and before.channel is not None:
             if member.id in voice_times:
                 time_in_channel = time.time() - voice_times[member.id]
-                xp_gained = int(time_in_channel // 30)
+                xp_gained = int(time_in_channel // 60)
                 user_data[member.id]["xp"] += xp_gained
 
                 if str(member.id) not in voice_time_data:
