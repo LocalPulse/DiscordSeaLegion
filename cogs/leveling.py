@@ -29,7 +29,7 @@ class Leveling(commands.Cog):
             with open("lvl.txt", "r", encoding="utf-8") as file:
                 for line in file:
                     parts = line.strip().split(":")
-                    if len(parts) == 25:
+                    if len(parts) == 3:
                         user_id, level, xp = parts
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
