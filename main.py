@@ -16,7 +16,6 @@ bot.load_extension("cogs.role_management")
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
     print(f'Бот {bot.user} подключен и готов к работе!')
 
 bot.run(TOKEN)
