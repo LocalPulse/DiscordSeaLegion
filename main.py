@@ -134,9 +134,9 @@ async def edit_rank(
 
     if role_to_check:
         role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
-        inter.channel.sen("1")
+        inter.channel.send("1")
         if role_for_level:
-            inter.channel.sen("2")
+            inter.channel.send("2")
             role = disnake.utils.get(inter.guild.roles, name=role_for_level)
             if role and role not in roles:
                 await user.add_roles(role)
