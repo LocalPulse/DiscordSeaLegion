@@ -158,7 +158,6 @@ class Leveling(commands.Cog):
 
     @commands.slash_command(description="Показывает топ-10 пользователей по опыту")
     async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
-        """Отображает топ-10 пользователей по количеству опыта."""
 
         if not user_data:
             await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
