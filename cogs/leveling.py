@@ -18,7 +18,6 @@ class Leveling(commands.Cog):
         self.load_level_up_channels()
 
     def save_user_data(self):
-        """Сохраняем данные пользователя в текстовый файл."""
         with open("lvl.txt", "w", encoding="utf-8") as file:
             for user_id, data in user_data.items():
                 file.write(f"{user_id}:{data['level']}:{data['xp']}\n")
@@ -34,7 +33,6 @@ class Leveling(commands.Cog):
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
     def load_level_up_channels(self):
-        """Загружаем настройки каналов из JSON-файла."""
         if os.path.exists(CHANNELS_FILE):
             try:
                 with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
@@ -47,7 +45,6 @@ class Leveling(commands.Cog):
             level_up_channels = {}
 
     def save_level_up_channels(self):
-        """Сохраняем настройки каналов в JSON-файл."""
         try:
             with open(CHANNELS_FILE, "w", encoding="utf-8") as file:
                 json.dump(level_up_channels, file, indent=4)
@@ -55,7 +52,6 @@ class Leveling(commands.Cog):
             print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
 
     def assign_role_based_on_level(self, member, new_level):
-        """Выдает пользователю роль на основе привязок уровня к роли."""
         user_roles = [role.id for role in member.roles]
         assigned_role = None
 
@@ -69,7 +65,6 @@ class Leveling(commands.Cog):
         return None
 
     async def send_message_to_channel(self, channel, message):
-        """Функция для отправки сообщений в указанный канал."""
         try:
             await channel.send(message)
         except Exception as e:
@@ -111,7 +106,6 @@ class Leveling(commands.Cog):
 
     @commands.slash_command(description="Показывает ваш уровень и XP")
     async def rank(self, inter: disnake.ApplicationCommandInteraction):
-        """Команда для отображения уровня и опыта пользователя."""
         user_id = inter.author.id
         user_data_entry = user_data.get(user_id)
 
@@ -144,7 +138,6 @@ class Leveling(commands.Cog):
     @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)
     async def set_exp_range(self, ctx, min_exp: int = None, max_exp: int = None):
-        """Команда администратора для настройки диапазона получения опыта."""
         if min_exp is None or max_exp is None:
             await ctx.send(
                 "❌ Неправильный ввод команды! Убедитесь, что вы указали оба значения.\n\n"
@@ -166,10 +159,9 @@ class Leveling(commands.Cog):
         exp_range["max"] = max_exp
         await ctx.send(f"🔧 Диапазон получения опыта установлен: от {min_exp} до {max_exp} за сообщение.")
 
-    @commands.command(name="set_channel", help="Настроить канал для отправки сообщений о достижении уровня.")
+    @commands.command(name="set_channel")
     @commands.has_permissions(administrator=True)
     async def set_channel(self, ctx, channel: disnake.TextChannel = None):
-        """Настройка канала для сообщений о достижении уровня на текущем сервере."""
         if channel is None:
             await ctx.send(
                 "⚠️ Вы не указали канал. Пожалуйста, укажите текстовый канал, где бот будет отправлять сообщения о достижении уровня.\n"
