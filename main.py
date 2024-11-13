@@ -112,17 +112,37 @@ async def edit_rank(
         user_data[user.id] = {"xp": 0, "level": 1}
 
     if level is not None:
+        xp_for_level = level ** 3
         user_data[user.id]["level"] = level
-    if xp is not None:
+        user_data[user.id]["xp"] = xp_for_level
+    elif xp is not None:
         user_data[user.id]["xp"] = xp
+        user_data[user.id]["level"] = calculate_level(xp)
 
-    new_level = calculate_level(user_data[user.id]["xp"])
-    if new_level != user_data[user.id]["level"]:
-        user_data[user.id]["level"] = new_level
+    new_level = user_data[user.id]["level"]
+    new_xp = user_data[user.id]["xp"]
 
     await inter.response.send_message(
-        f"Уровень и опыт {user.mention} обновлены: Уровень — {user_data[user.id]['level']}, XP — {user_data[user.id]['xp']}."
+        f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}."
     )
+
+    roles = user.roles
+    role_to_check = None
+
+    if any(role.name == "Дозорный" for role in roles):
+        role_to_check = "duty_guard"
+    elif any(role.name == "Пират" for role in roles):
+        role_to_check = "pirate"
+
+    if role_to_check:
+        role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
+        if role_for_level:
+            role = disnake.utils.get(inter.guild.roles, name=role_for_level)
+            if role and role not in roles:
+                await user.add_roles(role)
+                await inter.channel.send(f"{user.mention} получил роль: {role_for_level}.")
+            else:
+                await inter.channel.send(f"{user.mention} уже имеет роль: {role_for_level}.")
 
 @bot.slash_command(description="Редактирует привязку ролей к уровням")
 @commands.has_permissions(administrator=True)
