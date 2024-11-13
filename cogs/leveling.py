@@ -36,14 +36,23 @@ class Leveling(commands.Cog):
     def load_level_up_channels(self):
         """Загружаем настройки каналов из JSON-файла."""
         if os.path.exists(CHANNELS_FILE):
-            with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
-                global level_up_channels
-                level_up_channels = json.load(file)
+            try:
+                with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
+                    global level_up_channels
+                    level_up_channels = json.load(file)
+            except json.JSONDecodeError:
+                print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
+                level_up_channels = {}  # В случае ошибки и пустого или поврежденного файла, используем пустой словарь.
+        else:
+            level_up_channels = {}  # Если файл не существует, создаем пустой словарь.
 
     def save_level_up_channels(self):
         """Сохраняем настройки каналов в JSON-файл."""
-        with open(CHANNELS_FILE, "w", encoding="utf-8") as file:
-            json.dump(level_up_channels, file, indent=4)
+        try:
+            with open(CHANNELS_FILE, "w", encoding="utf-8") as file:
+                json.dump(level_up_channels, file, indent=4)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
 
     def assign_role_based_on_level(self, member, new_level):
         """Выдает пользователю роль на основе привязок уровня к роли."""
