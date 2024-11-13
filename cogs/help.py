@@ -9,15 +9,40 @@ class HelpCommand(commands.Cog):
     async def help(self, ctx):
         embed = disnake.Embed(
             title="Справка по командам бота",
-            description="Вот список доступных команд, которые вы можете использовать:",
+            description="Ниже перечислены команды, доступные для использования. Команды разделены по категориям:",
             color=disnake.Color.blue()
         )
 
-        embed.add_field(name="!help", value="Выводит список всех команд бота", inline=False)
-        embed.add_field(name="!set_channel", value="Настроить канал для сообщений о достижении уровня", inline=False)
-        embed.add_field(name="!set_channel #канал", value="Укажите текстовый канал для сообщений о достижении уровня", inline=False)
+        embed.add_field(
+            name="HelpCommand",
+            value=(
+                "`!help` - Выводит справочную информацию о командах бота.\n"
+            ),
+            inline=False
+        )
 
-        embed.set_footer(text="Для более подробной информации воспользуйтесь документацией бота или напишите админу.")
+        embed.add_field(
+            name="Leveling",
+            value=(
+                "`!set_channel` - Настроить канал для отправки сообщений о достижении уровня.\n"
+                "`!set_exp_range` - Настроить диапазон получения опыта. Только для администраторов.\n"
+            ),
+            inline=False
+        )
+
+        embed.add_field(
+            name="RoleManagement",
+            value=(
+                "`!edit_rank` - Изменить уровень и опыт пользователя, обновить привязанные роли.\n"
+                "`!set_roles` - Привязать роли, выдаваемые при достижении уровня.\n"
+                "`!show_roles` - Показать список ролей и уровней в виде таблицы.\n"
+            ),
+            inline=False
+        )
+
+        embed.set_footer(
+            text="Для получения дополнительной информации обратитесь к администратору."
+        )
 
         await ctx.send(embed=embed)
 
