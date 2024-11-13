@@ -48,43 +48,65 @@ class RoleManagement(commands.Cog):
             f"🎖️ Для проверки всех ролей напишите команду `!show_roles`"
         )
 
-
     @commands.command()
-    async def edit_rank(self, ctx, user: disnake.Member, level: int = None, xp: int = None):
-        """Команда для изменения уровня и опыта пользователя"""
+    async def edit_rank(self, ctx, user: disnake.Member = None, level: int = None, xp: int = None):
+        """Команда для изменения уровня и опыта пользователя и обновления ролей на основе уровня"""
+
+        # Проверка на наличие обязательного аргумента `user`
+        if not user:
+            await ctx.send(
+                "⚠️ **Ошибка:** Укажите пользователя. Пример команды: `!edit_rank @User 10` или `!edit_rank @User xp=200`.")
+            return
+
         # Проверка и обновление данных пользователя
         if user.id not in user_data:
             user_data[user.id] = {"xp": 0, "level": 1}
 
+        # Проверка и применение уровня и/или опыта
         if level is not None:
+            if level <= 0:
+                await ctx.send("⚠️ **Ошибка:** Уровень должен быть положительным целым числом.")
+                return
             xp_for_level = level ** 3
             user_data[user.id]["level"] = level
             user_data[user.id]["xp"] = xp_for_level
         elif xp is not None:
+            if xp < 0:
+                await ctx.send("⚠️ **Ошибка:** Опыт должен быть неотрицательным числом.")
+                return
             user_data[user.id]["xp"] = xp
             user_data[user.id]["level"] = calculate_level(xp)
+        else:
+            await ctx.send("⚠️ **Ошибка:** Укажите либо уровень, либо опыт для обновления.")
+            return
 
+        # Новые значения уровня и опыта
         new_level = user_data[user.id]["level"]
         new_xp = user_data[user.id]["xp"]
 
-        # Проверка и выдача новой роли на основе привязок
+        # Проверка и выдача роли на основе привязок
         user_roles = [role.id for role in user.roles]
         assigned_role = None
 
         for check_role_id, levels in self.role_assignments.items():
-            if int(check_role_id) in user_roles:  # Проверка на наличие нужной роли
+            if int(check_role_id) in user_roles:  # Проверка наличия нужной роли
                 assign_role_id = levels.get(str(new_level))
                 if assign_role_id:
                     role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
                     if role and role not in user.roles:
                         await user.add_roles(role)
                         assigned_role = role
-                        await ctx.send(f"{user.mention} получил роль: {role.name}.")
+                        await ctx.send(f"✅ {user.mention} теперь получил роль: **{role.name}** на уровне {new_level}!")
 
+        # Вывод сообщения, если подходящая роль не найдена
         if not assigned_role:
-            await ctx.send(f"Для {user.mention} не найдено подходящей роли на уровне {new_level}.")
+            await ctx.send(f"ℹ️ Для {user.mention} не найдено подходящей роли на уровне {new_level}.")
 
-        await ctx.send(f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}.")
+        # Финальное уведомление об обновлении уровня и опыта
+        await ctx.send(
+            f"📈 **Уровень и опыт обновлены:**\n"
+            f"{user.mention} — **Уровень:** {new_level}, **XP:** {new_xp}"
+        )
 
     @commands.command()
     async def show_roles(self, ctx):
@@ -119,7 +141,7 @@ class RoleManagement(commands.Cog):
                 inline=False
             )
 
-        embed.set_footer(text="Привязки ролей к уровням в вашей гильдии")
+        embed.set_footer(text="Привязки ролей к уровням SEA LEGION")
         await ctx.send(embed=embed)
 
 
