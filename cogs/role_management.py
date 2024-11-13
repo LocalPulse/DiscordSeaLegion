@@ -102,7 +102,6 @@ class RoleManagement(commands.Cog):
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
-        # Добавление привязок ролей и уровней с улучшенным оформлением
         for check_role_id, levels in self.role_assignments.items():
             role = disnake.utils.get(ctx.guild.roles, id=int(check_role_id))
             role_name = role.name if role else f"ID: {check_role_id}"

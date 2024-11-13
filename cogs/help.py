@@ -13,6 +13,8 @@ class HelpCommand(commands.Cog):
             color=disnake.Color.blue()
         )
 
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+
         embed.add_field(
             name="HelpCommand",
             value=(
