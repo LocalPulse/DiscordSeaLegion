@@ -6,14 +6,17 @@ import json
 from config import user_data
 
 LEVEL_UP_CHANNELS_FILE = "channels.json"
+VOICE_TIME_FILE = "voice_time_data.json"
 voice_times = {}
 level_up_channels = {}
+voice_time_data = {}
 
 class VoiceExperience(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.check_voice_activity.start()
         self.load_level_up_channels()
+        self.load_voice_time_data()
 
     def cog_unload(self):
         self.check_voice_activity.cancel()
@@ -36,12 +39,24 @@ class VoiceExperience(commands.Cog):
         else:
             level_up_channels = {}
 
-    def save_level_up_channels(self):
+    def load_voice_time_data(self):
+        if os.path.exists(VOICE_TIME_FILE):
+            try:
+                with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
+                    global voice_time_data
+                    voice_time_data = json.load(file)
+            except json.JSONDecodeError:
+                print("[ERROR] Ошибка при чтении JSON файла для голосового времени. Используется пустой словарь.")
+                voice_time_data = {}
+        else:
+            voice_time_data = {}
+
+    def save_voice_time_data(self):
         try:
-            with open(LEVEL_UP_CHANNELS_FILE, "w", encoding="utf-8") as file:
-                json.dump(level_up_channels, file, indent=4)
+            with open(VOICE_TIME_FILE, "w", encoding="utf-8") as file:
+                json.dump(voice_time_data, file, indent=4)
         except Exception as e:
-            print(f"[ERROR] Ошибка при сохранении настроек каналов уровня: {e}")
+            print(f"[ERROR] Ошибка при сохранении данных о времени в голосе: {e}")
 
     @tasks.loop(minutes=1)
     async def check_voice_activity(self):
@@ -56,6 +71,12 @@ class VoiceExperience(commands.Cog):
                 if xp_gained > 0:
                     user_data[member.id]["xp"] += xp_gained
                     voice_times[member.id] = time.time()
+
+                    if str(member.id) not in voice_time_data:
+                        voice_time_data[str(member.id)] = 0
+                    voice_time_data[str(member.id)] += time_in_channel // 60
+
+                    self.save_voice_time_data()
 
                     guild_id = str(member.guild.id)
                     if guild_id in level_up_channels:
@@ -76,6 +97,12 @@ class VoiceExperience(commands.Cog):
                 xp_gained = int(time_in_channel // 60)
                 user_data[member.id]["xp"] += xp_gained
 
+                if str(member.id) not in voice_time_data:
+                    voice_time_data[str(member.id)] = 0
+                voice_time_data[str(member.id)] += time_in_channel // 60
+
+                self.save_voice_time_data()
+
                 guild_id = str(member.guild.id)
                 if guild_id in level_up_channels:
                     channel_id = level_up_channels[guild_id]
@@ -90,7 +117,6 @@ class VoiceExperience(commands.Cog):
                 del voice_times[member.id]
 
         elif after.channel is not None and before.channel is None:
-            """Если пользователь вошел в голосовой канал - начинаем отсчет времени"""
             voice_times[member.id] = time.time()
 
 

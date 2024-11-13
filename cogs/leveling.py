@@ -7,8 +7,10 @@ from config import user_data, exp_range, calculate_level
 from utils import load_roles, save_roles
 
 CHANNELS_FILE = "channels.json"
+VOICE_TIME_FILE = "voice_time_data.json"
 
 level_up_channels = {}
+
 
 class Leveling(commands.Cog):
     def __init__(self, bot):
@@ -50,6 +52,13 @@ class Leveling(commands.Cog):
                 json.dump(level_up_channels, file, indent=4)
         except Exception as e:
             print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
+
+    def load_voice_time_data(self):
+        """Загружаем данные времени голосовых каналов из JSON файла."""
+        if os.path.exists(VOICE_TIME_FILE):
+            with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
+                return json.load(file)
+        return {}  # Возвращаем пустой словарь, если файл не существует
 
     def assign_role_based_on_level(self, member, new_level):
         user_roles = [role.id for role in member.roles]
@@ -104,10 +113,14 @@ class Leveling(commands.Cog):
 
         self.save_user_data()
 
-    @commands.slash_command(description="Показывает ваш уровень и XP")
+    @commands.slash_command(description="Показывает ваш уровень, XP и время в голосе")
     async def rank(self, inter: disnake.ApplicationCommandInteraction):
         user_id = inter.author.id
         user_data_entry = user_data.get(user_id)
+
+        # Загружаем данные времени голосовых каналов
+        voice_time_data = self.load_voice_time_data()
+        total_voice_time = voice_time_data.get(str(user_id), 0)
 
         if user_data_entry:
             level = user_data_entry["level"]
@@ -125,15 +138,20 @@ class Leveling(commands.Cog):
             embed.add_field(name="📊 Уровень", value=f"**{level}**", inline=True)
             embed.add_field(name="💠 Текущий XP", value=f"**{xp}**", inline=True)
             embed.add_field(name="🔜 XP до следующего уровня", value=f"**{xp_progress}**", inline=True)
-            embed.add_field(name="🌟 Всего XP для следующего уровня", value=f"**{xp_needed_for_next_level}**", inline=True)
+            embed.add_field(name="🌟 Всего XP для следующего уровня", value=f"**{xp_needed_for_next_level}**",
+                            inline=True)
 
-            embed.add_field(name="🗓️ Присоединился к серверу", value=inter.author.joined_at.strftime("%Y-%m-%d"), inline=True)
+            hours, minutes = divmod(total_voice_time, 60)
+            embed.add_field(name="🕒 Общее время в голосовом канале", value=f"**{hours} ч {minutes} мин**", inline=True)
+            embed.add_field(name="🗓️ Присоединился к серверу", value=inter.author.joined_at.strftime("%Y-%m-%d"),
+                            inline=True)
             embed.set_footer(text="Продолжайте общаться, чтобы повышать уровень!", icon_url=self.bot.user.avatar.url)
 
             await inter.response.send_message(embed=embed)
 
         else:
-            await inter.response.send_message(f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
+            await inter.response.send_message(
+                f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
 
     @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)

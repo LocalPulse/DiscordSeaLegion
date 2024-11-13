@@ -18,7 +18,7 @@ class HelpCommand(commands.Cog):
         embed.add_field(
             name="HelpCommand",
             value=(
-                "`!help` - Выводит справочную информацию о командах бота.\n"
+                "`sl.help` - Выводит справочную информацию о командах бота.\n"
             ),
             inline=False
         )
@@ -26,8 +26,8 @@ class HelpCommand(commands.Cog):
         embed.add_field(
             name="Leveling",
             value=(
-                "`!set_channel` - Настроить канал для отправки сообщений о достижении уровня.\n"
-                "`!set_exp_range` - Настроить диапазон получения опыта. Только для администраторов.\n"
+                "`sl.set_channel` - Настроить канал для отправки сообщений о достижении уровня.\n"
+                "`sl.set_exp_range` - Настроить диапазон получения опыта. Только для администраторов.\n"
             ),
             inline=False
         )
@@ -35,9 +35,9 @@ class HelpCommand(commands.Cog):
         embed.add_field(
             name="RoleManagement",
             value=(
-                "`!edit_rank` - Изменить уровень и опыт пользователя, обновить привязанные роли.\n"
-                "`!set_roles` - Привязать роли, выдаваемые при достижении уровня.\n"
-                "`!show_roles` - Показать список ролей и уровней в виде таблицы.\n"
+                "`sl.edit_rank` - Изменить уровень и опыт пользователя, обновить привязанные роли.\n"
+                "`sl.set_roles` - Привязать роли, выдаваемые при достижении уровня.\n"
+                "`sl.show_roles` - Показать список ролей и уровней в виде таблицы.\n"
             ),
             inline=False
         )
