@@ -158,6 +158,7 @@ class Leveling(commands.Cog):
 
     @commands.slash_command(description="Показывает топ-10 пользователей по опыту")
     async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
+        """Отображает топ-10 пользователей по количеству опыта."""
 
         if not user_data:
             await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
@@ -170,9 +171,6 @@ class Leveling(commands.Cog):
             description="Топ-10 пользователей с наибольшим количеством опыта!",
             color=disnake.Color.gold()
         )
-
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
-
 
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
             member = inter.guild.get_member(user_id)
@@ -185,8 +183,11 @@ class Leveling(commands.Cog):
 
         await inter.response.send_message(embed=embed)
 
-    @commands.command(name="leaderboard")
-    async def leaderboard_dub(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.send_message(embed=embed)
+
+    @commands.command(name="leaderboard_dub")
+    async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
+        """Отображает топ-10 пользователей по количеству опыта."""
 
         if not user_data:
             await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
@@ -200,7 +201,16 @@ class Leveling(commands.Cog):
             color=disnake.Color.gold()
         )
 
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
+            member = inter.guild.get_member(user_id)
+            if member:
+                embed.add_field(
+                    name=f"{rank}. {member.display_name}",
+                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
+                    inline=False
+                )
+
+        await inter.response.send_message(embed=embed)
 
 
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
