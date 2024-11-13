@@ -16,12 +16,35 @@ class VoiceExperience(commands.Cog):
         self.load_level_up_channels()
 
     def cog_unload(self):
-        """Останавливаем задачу при выгрузке cog"""
         self.check_voice_activity.cancel()
+
+    async def send_message_to_channel(self, channel, message):
+        try:
+            await channel.send(message)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при отправке сообщения: {e}")
+
+    def load_level_up_channels(self):
+        if os.path.exists(LEVEL_UP_CHANNELS_FILE):
+            try:
+                with open(LEVEL_UP_CHANNELS_FILE, "r", encoding="utf-8") as file:
+                    global level_up_channels
+                    level_up_channels = json.load(file)
+            except json.JSONDecodeError:
+                print("[ERROR] Ошибка при чтении JSON файла для каналов уровня. Используется пустой словарь.")
+                level_up_channels = {}
+        else:
+            level_up_channels = {}
+
+    def save_level_up_channels(self):
+        try:
+            with open(LEVEL_UP_CHANNELS_FILE, "w", encoding="utf-8") as file:
+                json.dump(level_up_channels, file, indent=4)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при сохранении настроек каналов уровня: {e}")
 
     @tasks.loop(minutes=1)
     async def check_voice_activity(self):
-        """Проверка активности пользователей в голосовых каналах каждую минуту"""
         for member in self.bot.guilds[0].members:
             if member.voice:
                 if member.id not in voice_times:
@@ -41,13 +64,12 @@ class VoiceExperience(commands.Cog):
                         if channel:
                             await channel.send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                         else:
-                            await self.send_to_default_channel(member, xp_gained)
+                            await self.send_message_to_channel(member.guild.text_channels[0], f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                     else:
-                        await self.send_to_default_channel(member, xp_gained)
+                        await self.send_message_to_channel(member.guild.text_channels[0], f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        """Слушаем изменения голосовых состояний (вход/выход из голосовых каналов)"""
         if after.channel is None and before.channel is not None:
             if member.id in voice_times:
                 time_in_channel = time.time() - voice_times[member.id]
@@ -59,42 +81,16 @@ class VoiceExperience(commands.Cog):
                     channel_id = level_up_channels[guild_id]
                     channel = self.bot.get_channel(int(channel_id))
                     if channel:
-                        await channel.send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                        await self.send_message_to_channel(channel, f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                     else:
-                        await self.send_to_default_channel(member, xp_gained)
+                        await self.send_message_to_channel(member.guild.text_channels[0], f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                 else:
-                    await self.send_to_default_channel(member, xp_gained)
+                    await self.send_message_to_channel(member.guild.text_channels[0], f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
 
                 del voice_times[member.id]
 
         elif after.channel is not None and before.channel is None:
             voice_times[member.id] = time.time()
-
-    async def send_to_default_channel(self, member, xp_gained):
-        """Отправляем сообщение в стандартный текстовый канал на сервере"""
-        text_channel = member.guild.text_channels[0]
-        await text_channel.send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
-
-    def load_level_up_channels(self):
-        """Загружаем настройки каналов для уровня из JSON-файла."""
-        if os.path.exists(LEVEL_UP_CHANNELS_FILE):
-            try:
-                with open(LEVEL_UP_CHANNELS_FILE, "r", encoding="utf-8") as file:
-                    global level_up_channels
-                    level_up_channels = json.load(file)
-            except json.JSONDecodeError:
-                print("[ERROR] Ошибка при чтении JSON файла для каналов уровня. Используется пустой словарь.")
-                level_up_channels = {}
-        else:
-            level_up_channels = {}
-
-    def save_level_up_channels(self):
-        """Сохраняем настройки каналов уровня в JSON-файл."""
-        try:
-            with open(LEVEL_UP_CHANNELS_FILE, "w", encoding="utf-8") as file:
-                json.dump(level_up_channels, file, indent=4)
-        except Exception as e:
-            print(f"[ERROR] Ошибка при сохранении настроек каналов уровня: {e}")
 
 
 def setup(bot):
