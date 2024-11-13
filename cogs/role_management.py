@@ -37,6 +37,7 @@ class RoleManagement(commands.Cog):
         )
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def edit_rank(self, ctx, user: disnake.Member = None, level: int = None, xp: int = None):
 
         # Проверка на наличие обязательного аргумента `user`
@@ -90,6 +91,7 @@ class RoleManagement(commands.Cog):
         )
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def show_roles(self, ctx):
         if not self.role_assignments:
             await ctx.send("🎖️ Привязки ролей к уровням не найдены.")

@@ -52,10 +52,10 @@ class Leveling(commands.Cog):
                     return json.load(file)
             except json.JSONDecodeError:
                 print("[ERROR] Ошибка при чтении JSON файла для голосового времени. Используется пустой словарь.")
-                return {}  # Возвращает пустой словарь при ошибке чтения JSON
+                return {}
         else:
             print("[INFO] Файл voice_time_data.json не найден. Создается пустой словарь.")
-            return {}  # Возвращает пустой словарь, если файл не существует
+            return {}
 
     def save_level_up_channels(self):
         try:
@@ -128,7 +128,7 @@ class Leveling(commands.Cog):
         if user_data_entry:
             level = user_data_entry["level"]
             xp = user_data_entry["xp"]
-            xp_needed_for_next_level = (level + 1) ** 3
+            xp_needed_for_next_level = (level + 1) ** 100
             xp_progress = xp_needed_for_next_level - xp
 
             embed = disnake.Embed(
@@ -155,6 +155,36 @@ class Leveling(commands.Cog):
         else:
             await inter.response.send_message(
                 f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
+
+    @commands.slash_command(description="Показывает топ-10 пользователей по опыту")
+    async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
+        """Отображает топ-10 пользователей по количеству опыта."""
+
+        if not user_data:
+            await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
+            return
+
+        sorted_users = sorted(user_data.items(), key=lambda x: x[1]['xp'], reverse=True)
+
+        embed = disnake.Embed(
+            title="🏆 Таблица Лидеров по Опыту",
+            description="Топ-10 пользователей с наибольшим количеством опыта!",
+            color=disnake.Color.gold()
+        )
+
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+
+
+        for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
+            member = inter.guild.get_member(user_id)
+            if member:
+                embed.add_field(
+                    name=f"{rank}. {member.display_name}",
+                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
+                    inline=False
+                )
+
+        await inter.response.send_message(embed=embed)
 
     @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)
