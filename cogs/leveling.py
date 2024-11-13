@@ -221,8 +221,6 @@ class Leveling(commands.Cog):
                     inline=False
                 )
 
-        # Отправляем embed-сообщение с результатами
-        await ctx.send(embed=embed)
         await ctx.send(embed=embed)
 
     @commands.command(name="set_exp_range")
