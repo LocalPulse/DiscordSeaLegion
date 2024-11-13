@@ -82,9 +82,9 @@ class Leveling(commands.Cog):
             embed = disnake.Embed(
                 title="🏅 Ваша Статистика Уровня",
                 description=f"Здесь отображены ваши текущие достижения, {inter.author.mention}!",
-                color=disnake.Color.blue() if level < 10 else disnake.Color.gold()  # Выбор цвета по уровню
+                color=disnake.Color.blue()
             )
-            embed.set_thumbnail(url=inter.author.avatar.url)  # Устанавливаем аватарку пользователя
+            embed.set_thumbnail(url=inter.author.avatar.url)
 
             # Добавляем поля с информацией
             embed.add_field(name="📊 Уровень", value=f"**{level}**", inline=True)
@@ -101,7 +101,6 @@ class Leveling(commands.Cog):
             await inter.response.send_message(embed=embed)
 
         else:
-            # Если пользователь ещё не имеет XP
             await inter.response.send_message(
                 f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!"
             )
