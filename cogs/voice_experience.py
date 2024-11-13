@@ -5,7 +5,7 @@ import os
 from config import user_data
 import json
 
-VOICE_CHANNELS_FILE = "voice_channels.json"
+VOICE_CHANNELS_FILE = "channels.json"
 voice_times = {}
 voice_channel_notifications = {}
 
@@ -59,7 +59,6 @@ class VoiceExperience(commands.Cog):
                     if channel:
                         await channel.send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                 else:
-                    # Если канал не был настроен, отправляем в первый текстовый канал
                     await member.guild.text_channels[0].send(
                         f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
 
@@ -88,32 +87,6 @@ class VoiceExperience(commands.Cog):
                 json.dump(voice_channel_notifications, file, indent=4)
         except Exception as e:
             print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
-
-    @commands.command(name="set_voice_channel",
-                      help="Настроить канал для отправки сообщений о времени в голосовом канале.")
-    @commands.has_permissions(administrator=True)
-    async def set_voice_channel(self, ctx, channel: disnake.TextChannel = None):
-        """Настройка канала для сообщений о времени в голосовом канале на текущем сервере."""
-        if channel is None:
-            await ctx.send(
-                "⚠️ Вы не указали канал. Пожалуйста, укажите текстовый канал, где бот будет отправлять сообщения о времени в голосовом канале.\n"
-                "Пример использования: `!set_voice_channel #канал`"
-            )
-            return
-
-        if not isinstance(channel, disnake.TextChannel):
-            await ctx.send(
-                "⚠️ Указанный канал не является текстовым каналом. Пожалуйста, укажите текстовый канал.\n"
-                "Пример использования: `!set_voice_channel #канал`"
-            )
-            return
-
-        guild_id = ctx.guild.id
-        voice_channel_notifications[guild_id] = channel.id
-        self.save_voice_channels()
-
-        await ctx.send(
-            f"✅ Канал для сообщений о времени в голосовом канале на этом сервере установлен: {channel.mention}")
 
 
 def setup(bot):
