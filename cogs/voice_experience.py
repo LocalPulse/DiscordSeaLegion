@@ -1,8 +1,7 @@
 import disnake
 from disnake.ext import commands, tasks
 import time
-import os
-from config import user_data  # Подключаем user_data для сохранения XP
+from config import user_data
 
 # Словарь для хранения времени входа пользователя в голосовой канал
 voice_times = {}
@@ -10,24 +9,24 @@ voice_times = {}
 class VoiceExperience(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.check_voice_activity.start()  # Запускаем задачу по проверке активности пользователей
+        self.update_voice_xp.start()  # Запускаем задачу для обновления XP каждую секунду
 
     def cog_unload(self):
         """Останавливаем задачу при выгрузке cog"""
-        self.check_voice_activity.cancel()
+        self.update_voice_xp.cancel()
 
-    @tasks.loop(minutes=1)
-    async def check_voice_activity(self):
-        """Проверка активности пользователей в голосовых каналах каждую минуту"""
-        for member in self.bot.guilds[0].members:  # Предположим, что бот подключен к одному серверу
+    @tasks.loop(seconds=1)
+    async def update_voice_xp(self):
+        """Обновляем опыт для пользователей, находящихся в голосовых каналах каждую секунду"""
+        for member in self.bot.guilds[0].members:
             if member.voice:
-                # Если пользователь в голосовом канале, начисляем ему опыт
+                # Если пользователь в голосовом канале, начисляем опыт
                 if member.id not in voice_times:
                     voice_times[member.id] = time.time()  # Запоминаем время входа в канал
 
                 # Рассчитываем время нахождения в канале
                 time_in_channel = time.time() - voice_times[member.id]
-                xp_gained = int(time_in_channel // 60)  # 1 XP за минуту в голосовом канале
+                xp_gained = int(time_in_channel)  # Начисляем 1 XP за каждую секунду
 
                 if xp_gained > 0:
                     user_data[member.id]["xp"] += xp_gained  # Добавляем XP
@@ -43,7 +42,7 @@ class VoiceExperience(commands.Cog):
             # Пользователь покидает голосовой канал
             if member.id in voice_times:
                 time_in_channel = time.time() - voice_times[member.id]
-                xp_gained = int(time_in_channel // 60)  # XP за время в канале
+                xp_gained = int(time_in_channel)  # XP за время в канале
                 user_data[member.id]["xp"] += xp_gained
 
                 # Отправляем сообщение о получении XP
