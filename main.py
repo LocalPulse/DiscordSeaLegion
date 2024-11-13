@@ -20,7 +20,7 @@ def calculate_level(xp):
 
 @bot.event
 async def on_ready():
-    print(f'Бот {bot.user} подключен и готов к работе!')
+    print(f'Bot {bot.user} подключен и готов к работе!')
 
 @bot.event
 async def on_message(message):
