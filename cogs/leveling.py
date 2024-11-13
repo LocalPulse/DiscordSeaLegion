@@ -8,6 +8,8 @@ from utils import load_roles, save_roles
 
 CHANNELS_FILE = "channels.json"
 VOICE_TIME_FILE = "voice_time_data.json"
+EXP_RANGE_FILE = "exp_range.json"
+
 
 level_up_channels = {}
 
@@ -17,6 +19,7 @@ class Leveling(commands.Cog):
         self.role_assignments = load_roles()
         self.load_user_data()
         self.load_level_up_channels()
+        self.load_exp_range()
 
     def save_user_data(self):
         with open("lvl.txt", "w", encoding="utf-8") as file:
@@ -76,6 +79,28 @@ class Leveling(commands.Cog):
                     if role and role not in member.roles:
                         return role
         return None
+
+    def save_exp_range(self):
+        """Сохраняет данные о диапазоне XP в файл."""
+        try:
+            with open(EXP_RANGE_FILE, "w", encoding="utf-8") as f:
+                json.dump(exp_range, f, ensure_ascii=False, indent=4)
+            print("[INFO] Диапазон XP успешно сохранен в файл.")
+        except Exception as e:
+            print(f"[ERROR] Ошибка при сохранении диапазона XP: {e}")
+
+    def load_exp_range(self):
+        """Загружает данные о диапазоне XP из файла."""
+        global exp_range
+        if os.path.exists(EXP_RANGE_FILE):
+            try:
+                with open(EXP_RANGE_FILE, "r", encoding="utf-8") as f:
+                    exp_range = json.load(f)
+                print("[INFO] Диапазон XP успешно загружен из файла.")
+            except json.JSONDecodeError:
+                print("[ERROR] Ошибка при чтении файла exp_range.json. Используется стандартное значение.")
+        else:
+            print("[INFO] Файл exp_range.json не найден. Используется стандартный диапазон.")
 
     async def send_message_to_channel(self, channel, message):
         try:
