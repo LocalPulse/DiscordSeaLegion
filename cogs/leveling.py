@@ -184,6 +184,35 @@ class Leveling(commands.Cog):
 
         await inter.response.send_message(embed=embed)
 
+    @commands.command(name="leaderboard", description="Показывает топ-10 пользователей по опыту")
+    async def leaderboard(self, ctx):
+        """Показывает топ-10 пользователей по опыту."""
+
+        if not user_data:
+            await ctx.send("📉 На данный момент нет пользователей с накопленным опытом.")
+            return
+
+        sorted_users = sorted(user_data.items(), key=lambda x: x[1]['xp'], reverse=True)
+
+        embed = disnake.Embed(
+            title="🏆 Таблица Лидеров по Опыту",
+            description="Топ-10 пользователей с наибольшим количеством опыта!",
+            color=disnake.Color.gold()
+        )
+
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
+
+        for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
+            member = ctx.guild.get_member(user_id)
+            if member:
+                embed.add_field(
+                    name=f"{rank}. {member.display_name}",
+                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
+                    inline=False
+                )
+
+        await ctx.send(embed=embed)
+
     @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)
     async def set_exp_range(self, ctx, min_exp: int = None, max_exp: int = None):
