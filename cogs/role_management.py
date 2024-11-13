@@ -68,6 +68,26 @@ class RoleManagement(commands.Cog):
 
         await ctx.send(f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}.")
 
+    @commands.command()
+    async def show_roles(self, ctx):
+        """Команда для отображения всех привязок ролей и уровней из role_assignments."""
+        if not self.role_assignments:
+            await ctx.send("Привязки ролей к уровням не найдены.")
+            return
+
+        message = "**Привязки ролей к уровням:**\n"
+        for check_role_id, levels in self.role_assignments.items():
+            role = disnake.utils.get(ctx.guild.roles, id=int(check_role_id))
+            role_name = role.name if role else f"ID: {check_role_id}"
+
+            message += f"\nРоль для проверки: {role_name} (ID: {check_role_id})\n"
+            for level, assign_role_id in levels.items():
+                assign_role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+                assign_role_name = assign_role.name if assign_role else f"ID: {assign_role_id}"
+                message += f" - Уровень {level}: Роль для выдачи — {assign_role_name} (ID: {assign_role_id})\n"
+
+        await ctx.send(message)
+
 
 def setup(bot):
     bot.add_cog(RoleManagement(bot))
