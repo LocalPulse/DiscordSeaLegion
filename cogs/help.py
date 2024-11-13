@@ -5,7 +5,7 @@ class HelpCommand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='bothelp', help='Выводит справочную информацию о командах бота')
+    @commands.command(name='help', help='Выводит справочную информацию о командах бота')
     async def help(self, ctx):
         embed = disnake.Embed(
             title="Справка по командам бота",
