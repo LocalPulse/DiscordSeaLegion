@@ -33,7 +33,11 @@ class VoiceExperience(commands.Cog):
                     voice_times[member.id] = time.time()  # Обновляем время входа в канал
 
                     # Отправляем сообщение о получении опыта
-                    await member.guild.text_channels[0].send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                    print(f"[DEBUG] {member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                    try:
+                        await member.guild.text_channels[0].send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                    except Exception as e:
+                        print(f"[ERROR] Ошибка при отправке сообщения: {e}")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -46,12 +50,17 @@ class VoiceExperience(commands.Cog):
                 user_data[member.id]["xp"] += xp_gained
 
                 # Отправляем сообщение о получении XP
-                await member.guild.text_channels[0].send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                print(f"[DEBUG] {member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                try:
+                    await member.guild.text_channels[0].send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                except Exception as e:
+                    print(f"[ERROR] Ошибка при отправке сообщения: {e}")
                 del voice_times[member.id]  # Убираем пользователя из словаря
 
         elif after.channel is not None and before.channel is None:
             # Пользователь зашел в голосовой канал
             voice_times[member.id] = time.time()  # Запоминаем время входа в канал
+            print(f"[DEBUG] {member.mention} зашел в голосовой канал!")
 
 def setup(bot):
     bot.add_cog(VoiceExperience(bot))
