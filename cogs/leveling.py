@@ -128,7 +128,7 @@ class Leveling(commands.Cog):
         if user_data_entry:
             level = user_data_entry["level"]
             xp = user_data_entry["xp"]
-            xp_needed_for_next_level = (level + 1) ** 100
+            xp_needed_for_next_level = (level + 1) ** 3
             xp_progress = xp_needed_for_next_level - xp
 
             embed = disnake.Embed(
