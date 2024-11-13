@@ -141,7 +141,7 @@ class Leveling(commands.Cog):
         else:
             await inter.response.send_message(f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
 
-    @commands.command(name="set_exp_range", help="Настраивает диапазон случайного получения опыта за сообщения")
+    @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)
     async def set_exp_range(self, ctx, min_exp: int = None, max_exp: int = None):
         """Команда администратора для настройки диапазона получения опыта."""
