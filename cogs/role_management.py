@@ -35,7 +35,16 @@ class RoleManagement(commands.Cog):
             await inter.channel.send(f"{user.mention} не имеет ролей.")
 
         if role_to_check:
+            # Сначала удаляем роли, которые не соответствуют новому уровню
             role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
+
+            # Удаляем более высокие уровни ролей, если они есть
+            for role in roles:
+                if role.name.startswith("Дозорный") or role.name.startswith("Пират"):
+                    level_in_role = int(role.name.split()[-1])
+                    if level_in_role > new_level:
+                        await user.remove_roles(role)
+                        await inter.channel.send(f"{user.mention} потерял роль: {role.name}.")
 
             if not role_for_level:
                 previous_levels = sorted([lvl for lvl in role_assignments.get(role_to_check, {}).keys() if lvl < new_level], reverse=True)
