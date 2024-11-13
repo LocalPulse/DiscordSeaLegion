@@ -29,7 +29,7 @@ class Leveling(commands.Cog):
             with open("lvl.txt", "r", encoding="utf-8") as file:
                 for line in file:
                     parts = line.strip().split(":")
-                    if len(parts) == 3:
+                    if len(parts) == 25:
                         user_id, level, xp = parts
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
@@ -268,6 +268,29 @@ class Leveling(commands.Cog):
 
         await ctx.send(f"✅ Канал для сообщений уровня на этом сервере установлен: {channel.mention}")
 
+    @commands.command(name="set_level_up_xp")
+    @commands.has_permissions(administrator=True)
+    async def set_level_up_xp(self, ctx, new_xp: int = None):
+        """Команда для изменения необходимого опыта для достижения нового уровня."""
+
+        if new_xp is None:
+            await ctx.send(
+                "❌ Неправильный ввод команды! Убедитесь, что вы указали новое значение XP.\n\n"
+                "**Правильный формат команды:** `!set_level_up_xp <new_xp>`\n"
+                "🔹 `new_xp` - количество опыта, необходимое для достижения нового уровня (целое положительное число)"
+            )
+            return
+
+        if new_xp < 1:
+            await ctx.send("❌ Значение XP должно быть больше или равно 1.")
+            return
+
+        exp_range["level_up_xp"] = new_xp
+
+        with open("exp_range.json", "w", encoding="utf-8") as f:
+            json.dump(exp_range, f, ensure_ascii=False, indent=4)
+
+        await ctx.send(f"🔧 Порог XP для достижения нового уровня установлен на {new_xp} опыта.")
 
 def setup(bot):
     bot.add_cog(Leveling(bot))
