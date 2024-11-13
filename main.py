@@ -96,6 +96,6 @@ async def edit_rank(
 
 @bot.slash_command(description="Отправляет приветственное сообщение")
 async def hello(inter: disnake.ApplicationCommandInteraction):
-    await inter.response.send_message("Привет")
+    await inter.response.send_message("Привет, пока")
 
 bot.run(TOKEN)
