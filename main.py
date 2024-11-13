@@ -13,6 +13,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 bot.load_extension("cogs.leveling")
 bot.load_extension("cogs.role_management")
+bot.load_extension("cogs.voice_experience")
 
 @bot.event
 async def on_ready():
