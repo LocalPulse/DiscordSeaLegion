@@ -18,8 +18,8 @@ class Leveling(commands.Cog):
         self.bot = bot
         self.role_assignments = load_roles()
         self.load_user_data()
-        self.load_level_up_channels()
         self.load_exp_range()
+        self.load_level_up_channels()
 
     def save_user_data(self):
         with open("lvl.txt", "w", encoding="utf-8") as file:
@@ -101,6 +101,26 @@ class Leveling(commands.Cog):
                 print("[ERROR] Ошибка при чтении файла exp_range.json. Используется стандартное значение.")
         else:
             print("[INFO] Файл exp_range.json не найден. Используется стандартный диапазон.")
+
+    async def send_message_to_channel(self, channel, message):
+        try:
+            await channel.send(message)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при отправке сообщения: {e}")
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """Убедитесь, что каналы доступны после того, как бот подключен к серверам."""
+        for guild_id, channel_id in level_up_channels.items():
+            guild = self.bot.get_guild(guild_id)
+            if guild:
+                level_up_channel = guild.get_channel(channel_id)
+                if level_up_channel:
+                    print(f"Канал для уровня в гильдии {guild.name}: {level_up_channel.name}")
+                else:
+                    print(f"Канал с ID {channel_id} не найден в гильдии {guild.name}")
+            else:
+                print(f"Гильдия с ID {guild_id} не найдена.")
 
     async def send_message_to_channel(self, channel, message):
         try:
