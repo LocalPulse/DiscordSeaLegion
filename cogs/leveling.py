@@ -184,12 +184,12 @@ class Leveling(commands.Cog):
 
         await inter.response.send_message(embed=embed)
 
-    @commands.command(name="leaderboard", description="Показывает топ-10 пользователей по опыту")
-    async def leaderboard(self, ctx):
+    @commands.slash_command(description="Показывает топ-10 пользователей по опыту")
+    async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
         """Показывает топ-10 пользователей по опыту."""
 
         if not user_data:
-            await ctx.send("📉 На данный момент нет пользователей с накопленным опытом.")
+            await inter.response.send_message("📉 На данный момент нет пользователей с накопленным опытом.")
             return
 
         # Сортируем пользователей по XP
@@ -205,7 +205,7 @@ class Leveling(commands.Cog):
 
         # Ограничиваем до топ-10
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
-            member = ctx.guild.get_member(user_id)
+            member = inter.guild.get_member(user_id)
 
             # Проверка, что пользователь существует на сервере
             if member:
@@ -221,7 +221,7 @@ class Leveling(commands.Cog):
                     inline=False
                 )
 
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
     @commands.command(name="set_exp_range")
     @commands.has_permissions(administrator=True)
