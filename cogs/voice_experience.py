@@ -60,34 +60,45 @@ class VoiceExperience(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_voice_activity(self):
-        for member in self.bot.guilds[0].members:
-            if member.voice:
-                if member.id not in voice_times:
-                    voice_times[member.id] = time.time()
+        # Проверка наличия подключенных гильдий
+        if not self.bot.guilds:
+            print("[WARNING] Бот не подключен ни к одной гильдии.")
+            return
 
-                time_in_channel = time.time() - voice_times[member.id]
-                xp_gained = int(time_in_channel // 60)
+        for guild in self.bot.guilds:
+            for member in guild.members:
+                if member.voice and member.voice.channel:
+                    if member.id not in voice_times:
+                        voice_times[member.id] = time.time()
 
-                if xp_gained > 0:
-                    user_data[member.id]["xp"] += xp_gained
-                    voice_times[member.id] = time.time()
+                    time_in_channel = time.time() - voice_times[member.id]
+                    xp_gained = int(time_in_channel // 60)
 
-                    if str(member.id) not in voice_time_data:
-                        voice_time_data[str(member.id)] = 0
-                    voice_time_data[str(member.id)] += time_in_channel // 60
+                    if xp_gained > 0:
+                        user_data[member.id]["xp"] += xp_gained
+                        voice_times[member.id] = time.time()
 
-                    self.save_voice_time_data()
+                        if str(member.id) not in voice_time_data:
+                            voice_time_data[str(member.id)] = 0
+                        voice_time_data[str(member.id)] += time_in_channel // 60
 
-                    guild_id = str(member.guild.id)
-                    if guild_id in level_up_channels:
-                        channel_id = level_up_channels[guild_id]
-                        channel = self.bot.get_channel(int(channel_id))
-                        if channel:
-                            await channel.send(f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
+                        self.save_voice_time_data()
+
+                        guild_id = str(guild.id)
+                        if guild_id in level_up_channels:
+                            channel_id = level_up_channels[guild_id]
+                            channel = self.bot.get_channel(int(channel_id))
+                            if channel:
+                                await self.send_message_to_channel(channel, f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
+                            else:
+                                print(f"[WARNING] Канал с ID {channel_id} не найден, отправка сообщения в первый текстовый канал.")
+                                await self.send_message_to_channel(guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
                         else:
-                            await self.send_message_to_channel(member.guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
-                    else:
-                        await self.send_message_to_channel(member.guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
+                            await self.send_message_to_channel(guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время, проведенное в голосовом канале! 🕒")
+
+    @check_voice_activity.before_loop
+    async def before_check_voice_activity(self):
+        await self.bot.wait_until_ready()  # Ждем, пока бот подключится к серверам
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -110,6 +121,7 @@ class VoiceExperience(commands.Cog):
                     if channel:
                         await self.send_message_to_channel(channel, f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
                     else:
+                        print(f"[WARNING] Канал с ID {channel_id} не найден, отправка сообщения в первый текстовый канал.")
                         await self.send_message_to_channel(member.guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
                 else:
                     await self.send_message_to_channel(member.guild.text_channels[0], f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
