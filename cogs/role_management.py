@@ -38,9 +38,9 @@ class RoleManagement(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def edit_rank(self, ctx, user: disnake.Member = None, level: int = None, xp: int = None):
+    async def edit_rank(self, ctx, user: disnake.Member = None, *, args: str = None):
+        """Allows admins to edit a user's rank by setting their level or XP."""
 
-        # Проверка на наличие обязательного аргумента `user`
         if not user:
             await ctx.send(
                 "⚠️ **Ошибка:** Укажите пользователя. Пример команды: `!edit_rank @User 10` или `!edit_rank @User xp=200`.")
@@ -48,6 +48,26 @@ class RoleManagement(commands.Cog):
 
         if user.id not in user_data:
             user_data[user.id] = {"xp": 0, "level": 1}
+
+        # Default values for level and xp
+        level = None
+        xp = None
+
+        if args:
+            # Try parsing the arguments
+            arg_parts = args.split()
+            for part in arg_parts:
+                if part.startswith("xp="):
+                    try:
+                        xp = int(part.split("=")[1])  # Get the number after 'xp='
+                    except ValueError:
+                        await ctx.send(f"⚠️ **Ошибка:** Невалидное значение для XP: {part.split('=')[1]}.")
+                        return
+                elif part.isdigit():
+                    level = int(part)
+                else:
+                    await ctx.send(f"⚠️ **Ошибка:** Неправильный аргумент: {part}.")
+                    return
 
         if level is not None:
             if level <= 0:
@@ -69,11 +89,12 @@ class RoleManagement(commands.Cog):
         new_level = user_data[user.id]["level"]
         new_xp = user_data[user.id]["xp"]
 
+        # Assign role based on level (if applicable)
         user_roles = [role.id for role in user.roles]
         assigned_role = None
 
         for check_role_id, levels in self.role_assignments.items():
-            if int(check_role_id) in user_roles:  # Проверка наличия нужной роли
+            if int(check_role_id) in user_roles:  # Checking for the role
                 assign_role_id = levels.get(str(new_level))
                 if assign_role_id:
                     role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
