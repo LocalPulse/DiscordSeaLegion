@@ -74,7 +74,7 @@ class RoleManagement(commands.Cog):
             if level <= 0:
                 await ctx.send("⚠️ **Ошибка:** Уровень должен быть положительным целым числом.")
                 return
-            xp_for_level = level ** 3
+            xp_for_level = level ** 10
             user_data[user.id]["level"] = level
             user_data[user.id]["xp"] = xp_for_level
         elif xp is not None:
