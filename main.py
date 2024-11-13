@@ -16,9 +16,14 @@ user_data = {}
 exp_range = {"min": 5, "max": 15}
 
 role_assignments = {
-    5: "Дозорный",
-    10: "Морской дозор",
-    15: "Пират",
+    "duty_guard": {
+        5: "Дозорный 5 уровня",
+        10: "Дозорный 10 уровня",
+    },
+    "pirate": {
+        5: "Пират 5 уровня",
+        10: "Пират 10 уровня",
+    }
 }
 
 def calculate_level(xp):
@@ -45,13 +50,24 @@ async def on_message(message):
         user_data[user_id]["level"] = new_level
         await message.channel.send(f"{message.author.mention} достиг {new_level} уровня! 🎉")
 
-        # Проверяем, нужно ли добавить роль
-        role_to_add = role_assignments.get(new_level)
-        if role_to_add:
-            role = disnake.utils.get(message.guild.roles, name=role_to_add)
-            if role:
-                await message.author.add_roles(role)
-                await message.channel.send(f"{message.author.mention} получил роль: {role_to_add}.")
+        # Проверяем, какую роль уже имеет пользователь
+        roles = message.author.roles
+        role_to_check = None
+
+        # Проверяем, есть ли у пользователя роль "Дозорный" или "Пират"
+        if any(role.name == "Дозорный" for role in roles):
+            role_to_check = "duty_guard"
+        elif any(role.name == "Пират" for role in roles):
+            role_to_check = "pirate"
+
+        # Если такая роль есть, то назначаем роль по уровню
+        if role_to_check:
+            role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
+            if role_for_level:
+                role = disnake.utils.get(message.guild.roles, name=role_for_level)
+                if role:
+                    await message.author.add_roles(role)
+                    await message.channel.send(f"{message.author.mention} получил роль: {role_for_level}.")
 
     await bot.process_commands(message)
 
@@ -110,10 +126,12 @@ async def edit_rank(
 
 @bot.slash_command(description="Редактирует привязку ролей к уровням")
 @commands.has_permissions(administrator=True)
-async def set_roles(inter: disnake.ApplicationCommandInteraction, level: int, role_name: str):
-    """Позволяет установить роль для определенного уровня"""
-    role_assignments[level] = role_name
-    await inter.response.send_message(f"Роль для уровня {level} обновлена на {role_name}.")
+async def set_roles(inter: disnake.ApplicationCommandInteraction, role_category: str, level: int, role_name: str):
+    if role_category not in role_assignments:
+        role_assignments[role_category] = {}
+
+    role_assignments[role_category][level] = role_name
+    await inter.response.send_message(f"Роль для категории {role_category} на уровне {level} обновлена на {role_name}.")
 
 @bot.slash_command(description="Отправляет приветственное сообщение")
 async def hello(inter: disnake.ApplicationCommandInteraction):
