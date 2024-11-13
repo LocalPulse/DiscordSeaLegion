@@ -192,6 +192,7 @@ class Leveling(commands.Cog):
             await ctx.send("📉 На данный момент нет пользователей с накопленным опытом.")
             return
 
+        # Сортируем пользователей по XP
         sorted_users = sorted(user_data.items(), key=lambda x: x[1]['xp'], reverse=True)
 
         embed = disnake.Embed(
@@ -202,15 +203,26 @@ class Leveling(commands.Cog):
 
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
+        # Ограничиваем до топ-10
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
             member = ctx.guild.get_member(user_id)
+
+            # Проверка, что пользователь существует на сервере
             if member:
                 embed.add_field(
                     name=f"{rank}. {member.display_name}",
                     value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
                     inline=False
                 )
+            else:
+                embed.add_field(
+                    name=f"{rank}. Пользователь с ID {user_id}",
+                    value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
+                    inline=False
+                )
 
+        # Отправляем embed-сообщение с результатами
+        await ctx.send(embed=embed)
         await ctx.send(embed=embed)
 
     @commands.command(name="set_exp_range")
