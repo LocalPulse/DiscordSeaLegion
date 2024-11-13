@@ -33,13 +33,6 @@ class Leveling(commands.Cog):
                         user_id, level, xp = parts
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
-    def load_voice_time_data(self):
-        """Загружаем данные времени голосовых каналов из JSON файла."""
-        if os.path.exists(VOICE_TIME_FILE):
-            with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
-                return json.load(file)
-        return {}
-
     def load_level_up_channels(self):
         if os.path.exists(CHANNELS_FILE):
             try:
@@ -51,6 +44,18 @@ class Leveling(commands.Cog):
                 level_up_channels = {}
         else:
             level_up_channels = {}
+
+    def load_voice_time_data(self):
+        if os.path.exists(VOICE_TIME_FILE):
+            try:
+                with open(VOICE_TIME_FILE, "r", encoding="utf-8") as file:
+                    return json.load(file)
+            except json.JSONDecodeError:
+                print("[ERROR] Ошибка при чтении JSON файла для голосового времени. Используется пустой словарь.")
+                return {}  # Возвращает пустой словарь при ошибке чтения JSON
+        else:
+            print("[INFO] Файл voice_time_data.json не найден. Создается пустой словарь.")
+            return {}  # Возвращает пустой словарь, если файл не существует
 
     def save_level_up_channels(self):
         try:
