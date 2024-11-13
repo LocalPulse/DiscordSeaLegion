@@ -135,8 +135,6 @@ async def edit_rank(
         role_to_check = "duty_guard"
     elif any(role.name == "Пират" for role in roles):
         role_to_check = "pirate"
-    else:
-        inter.channel.send(f"{user.mention} нету ролей.")
 
     if role_to_check:
         role_for_level = role_assignments.get(role_to_check, {}).get(new_level)
