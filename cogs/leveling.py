@@ -69,12 +69,42 @@ class Leveling(commands.Cog):
     async def rank(self, inter: disnake.ApplicationCommandInteraction):
         """Команда для отображения уровня и опыта пользователя."""
         user_id = inter.author.id
-        if user_id in user_data:
-            level = user_data[user_id]["level"]
-            xp = user_data[user_id]["xp"]
-            await inter.response.send_message(f"📈 {inter.author.mention}, ваш уровень: **{level}**, XP: **{xp}**")
+        user_data_entry = user_data.get(user_id)
+
+        # Проверка, существует ли пользователь в данных
+        if user_data_entry:
+            level = user_data_entry["level"]
+            xp = user_data_entry["xp"]
+            xp_needed_for_next_level = (level + 1) ** 3
+            xp_progress = xp_needed_for_next_level - xp
+
+            # Создаём Embed
+            embed = disnake.Embed(
+                title="🏅 Ваша Статистика Уровня",
+                description=f"Здесь отображены ваши текущие достижения, {inter.author.mention}!",
+                color=disnake.Color.blue() if level < 10 else disnake.Color.gold()  # Выбор цвета по уровню
+            )
+            embed.set_thumbnail(url=inter.author.avatar.url)  # Устанавливаем аватарку пользователя
+
+            # Добавляем поля с информацией
+            embed.add_field(name="📊 Уровень", value=f"**{level}**", inline=True)
+            embed.add_field(name="💠 Текущий XP", value=f"**{xp}**", inline=True)
+            embed.add_field(name="🔜 XP до следующего уровня", value=f"**{xp_progress}**", inline=True)
+            embed.add_field(name="🌟 Всего XP для следующего уровня", value=f"**{xp_needed_for_next_level}**",
+                            inline=True)
+
+            # Время регистрации пользователя
+            embed.add_field(name="🗓️ Присоединился к серверу", value=inter.author.joined_at.strftime("%Y-%m-%d"),
+                            inline=True)
+            embed.set_footer(text="Продолжайте общаться, чтобы повышать уровень!", icon_url=self.bot.user.avatar.url)
+
+            await inter.response.send_message(embed=embed)
+
         else:
-            await inter.response.send_message(f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
+            # Если пользователь ещё не имеет XP
+            await inter.response.send_message(
+                f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!"
+            )
 
     @commands.slash_command(description="Настраивает диапазон случайного получения опыта за сообщения")
     @commands.has_permissions(administrator=True)
