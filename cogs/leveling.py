@@ -91,7 +91,6 @@ class Leveling(commands.Cog):
         if new_level > user_data[user_id]["level"]:
             user_data[user_id]["level"] = new_level
 
-            # Формируем сообщение
             level_up_message = f"🎉 {message.author.mention} достиг {new_level} уровня!"
             role = self.assign_role_based_on_level(message.author, new_level)
             if role:

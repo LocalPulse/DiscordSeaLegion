@@ -55,14 +55,17 @@ class VoiceExperience(commands.Cog):
 
                 guild_id = member.guild.id
                 if guild_id in voice_channel_notifications:
-                    channel = self.bot.get_channel(voice_channel_notifications[guild_id])
-                    if channel:
-                        await channel.send(f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                    level_up_channel = self.bot.get_channel(voice_channel_notifications[guild_id])
+                    if level_up_channel:
+                        await level_up_channel.send(
+                            f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
+                    else:
+                        await member.guild.text_channels[0].send(
+                            f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
                 else:
                     await member.guild.text_channels[0].send(
                         f"{member.mention} получил {xp_gained} XP за время в голосовом канале!")
 
-                del voice_times[member.id]
 
         elif after.channel is not None and before.channel is None:
             voice_times[member.id] = time.time()
