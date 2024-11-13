@@ -157,6 +157,7 @@ class Leveling(commands.Cog):
                 f"{inter.author.mention}, у вас пока нет XP. Начните писать сообщения, чтобы зарабатывать XP!")
 
     @commands.slash_command(description="Показывает топ-10 пользователей по опыту")
+    @commands.command(name="leaderboard")
     async def leaderboard(self, inter: disnake.ApplicationCommandInteraction):
 
         if not user_data:
