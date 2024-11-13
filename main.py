@@ -122,10 +122,6 @@ async def edit_rank(
     new_level = user_data[user.id]["level"]
     new_xp = user_data[user.id]["xp"]
 
-    await inter.response.send_message(
-        f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}."
-    )
-
     roles = user.roles
     role_to_check = None
 
@@ -145,6 +141,10 @@ async def edit_rank(
                 await inter.channel.send(f"{user.mention} получил роль: {role_for_level}.")
             else:
                 await inter.channel.send(f"{user.mention} уже имеет роль: {role_for_level}.")
+
+    await inter.response.send_message(
+        f"Уровень и опыт {user.mention} обновлены: Уровень — {new_level}, XP — {new_xp}."
+    )
 
 @bot.slash_command(description="Редактирует привязку ролей к уровням")
 @commands.has_permissions(administrator=True)
