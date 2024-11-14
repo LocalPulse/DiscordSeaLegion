@@ -89,25 +89,12 @@ class RoleManagement(commands.Cog):
         new_level = user_data[user.id]["level"]
         new_xp = user_data[user.id]["xp"]
 
+        # Получаем список ролей пользователя
         user_roles = [role.id for role in user.roles]
+        assigned_roles = []
         roles_to_remove = []
 
-        # Удаляем все роли, которые выше текущего уровня
-        for check_role_id, levels in self.role_assignments.items():
-            if int(check_role_id) in user_roles:
-                for lvl, assign_role_id in levels.items():
-                    lvl = int(lvl)
-                    if lvl > new_level:
-                        role_to_remove = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
-                        if role_to_remove and role_to_remove in user.roles:
-                            roles_to_remove.append(role_to_remove)
-
-        # Удаляем старые роли
-        if roles_to_remove:
-            await user.remove_roles(*roles_to_remove)
-            await ctx.send(f"❌ Удалены роли: {', '.join([role.name for role in roles_to_remove])}.")
-
-        # Теперь назначаем только одну роль для нового уровня или ближайшую
+        # Найдем ближайшую роль ниже или на уровне
         assigned_role = None
         closest_role_id = None
         closest_level = None
@@ -116,30 +103,40 @@ class RoleManagement(commands.Cog):
             if int(check_role_id) in user_roles:
                 for lvl, assign_role_id in levels.items():
                     lvl = int(lvl)
-                    if lvl == new_level:
+                    if lvl == new_level:  # Если роль для текущего уровня
                         assigned_role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
                         break
-                    elif lvl < new_level:
-                        # Находим ближайшую роль ниже
+                    elif lvl < new_level:  # Если роль для ближайшего уровня ниже
                         if closest_level is None or lvl > closest_level:
                             closest_level = lvl
                             closest_role_id = assign_role_id
 
-        # Если нашли роль для нового уровня, назначаем её
+        # Удаление ролей выше уровня нового
+        for check_role_id, levels in self.role_assignments.items():
+            if int(check_role_id) in user_roles:
+                for lvl, assign_role_id in levels.items():
+                    lvl = int(lvl)
+                    if lvl > new_level:  # Удаляем роли выше нового уровня
+                        role_to_remove = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+                        if role_to_remove and role_to_remove in user.roles:
+                            roles_to_remove.append(role_to_remove)
+
+        # Удаляем старые роли, которые выше нового уровня
+        for role in roles_to_remove:
+            if role and role in user.roles:
+                await user.remove_roles(role)
+
+        # Теперь назначаем роль для текущего уровня или ближайшего
         if assigned_role:
             if assigned_role not in user.roles:
                 await user.add_roles(assigned_role)
-                await ctx.send(
-                    f"✅ {user.mention} получил роль для уровня {new_level}: **{assigned_role.name}**."
-                )
-        # Если роли для нового уровня нет, назначаем ближайшую роль ниже
+                await ctx.send(f"✅ {user.mention} получил роль для уровня {new_level}: **{assigned_role.name}**.")
         elif closest_role_id:
             assigned_role = disnake.utils.get(ctx.guild.roles, id=int(closest_role_id))
             if assigned_role and assigned_role not in user.roles:
                 await user.add_roles(assigned_role)
                 await ctx.send(
-                    f"✅ {user.mention} получил роль для ближайшего уровня {closest_level}: **{assigned_role.name}**."
-                )
+                    f"✅ {user.mention} получил роль для ближайшего уровня {closest_level}: **{assigned_role.name}**.")
         else:
             await ctx.send(f"ℹ️ Для {user.mention} не найдено роли для уровня {new_level}.")
 
