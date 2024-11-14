@@ -50,7 +50,6 @@ class RoleManagement(commands.Cog):
         if user.id not in user_data:
             user_data[user.id] = {"xp": 0, "level": 1}
 
-        # Значения по умолчанию для уровня и опыта
         level = None
         xp = None
 
@@ -74,7 +73,8 @@ class RoleManagement(commands.Cog):
             if level <= 0:
                 await ctx.send("⚠️ **Ошибка:** Уровень должен быть положительным целым числом.")
                 return
-            xp_for_level = level ** 10
+            # Используем куб уровня для плавного увеличения требуемого опыта
+            xp_for_level = level ** 3
             user_data[user.id]["level"] = level
             user_data[user.id]["xp"] = xp_for_level
         elif xp is not None:
