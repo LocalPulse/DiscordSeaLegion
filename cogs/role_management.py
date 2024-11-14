@@ -54,7 +54,6 @@ class RoleManagement(commands.Cog):
         xp = None
 
         if args:
-            # Парсим аргументы
             arg_parts = args.split()
             for part in arg_parts:
                 if part.startswith("xp="):

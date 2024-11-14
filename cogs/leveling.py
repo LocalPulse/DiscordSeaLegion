@@ -170,9 +170,9 @@ class Leveling(commands.Cog):
             user_data[user_id]["level"] = new_level
 
             level_up_message = f"🎉 {message.author.mention} достиг {new_level} уровня!"
-            role = self.assign_role_based_on_level(message.author, new_level)
+            role = await self.assign_role_based_on_level(message.author)
             if role:
-                level_up_message += f"\n💼 {message.author.mention} получил новую роль: **{role.name}**!"
+                level_up_message = f"\n💼 {message.author.mention} получил новую роль: **{role.name}**!"
                 await message.author.add_roles(role)
 
             guild_id = message.guild.id
