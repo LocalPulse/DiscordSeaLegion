@@ -38,8 +38,6 @@ class RoleManagement(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    @commands.command()
-    @commands.has_permissions(administrator=True)
     async def edit_rank(self, ctx, user: disnake.Member = None, *, args: str = None):
         """Позволяет администраторам редактировать уровень или XP пользователя."""
 
