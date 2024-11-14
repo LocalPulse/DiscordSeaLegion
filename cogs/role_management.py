@@ -111,20 +111,21 @@ class RoleManagement(commands.Cog):
                             closest_level = lvl
                             closest_role_id = assign_role_id
 
-        # Удаление ролей выше уровня нового
+        # Удаление всех ролей ниже уровня
         for check_role_id, levels in self.role_assignments.items():
             if int(check_role_id) in user_roles:
                 for lvl, assign_role_id in levels.items():
                     lvl = int(lvl)
-                    if lvl > new_level:  # Удаляем роли выше нового уровня
+                    if lvl < new_level:  # Удаляем роли ниже нового уровня
                         role_to_remove = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
                         if role_to_remove and role_to_remove in user.roles:
                             roles_to_remove.append(role_to_remove)
 
-        # Удаляем старые роли, которые выше нового уровня
+        # Удаляем старые роли, которые ниже или выше нового уровня
         for role in roles_to_remove:
             if role and role in user.roles:
                 await user.remove_roles(role)
+                await ctx.send(f"❌ Удалена роль: {role.name} [{new_level}]")
 
         # Теперь назначаем роль для текущего уровня или ближайшего
         if assigned_role:
