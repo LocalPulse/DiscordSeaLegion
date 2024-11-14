@@ -12,6 +12,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="sl.", intents=intents, help_command=None)
 
 bot.load_extension("cogs.leveling")
+bot.load_extension("cogs.channel_management")
+bot.load_extension("cogs.xp_management")
 bot.load_extension("cogs.role_management")
 bot.load_extension("cogs.voice_experience")
 bot.load_extension("cogs.help")
