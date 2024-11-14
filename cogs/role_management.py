@@ -115,11 +115,14 @@ class RoleManagement(commands.Cog):
                 if int(check_role_id) in user_roles:
                     for lvl, assign_role_id in levels.items():
                         lvl = int(lvl)
+                        # Удаляем только те роли, которые имеют уровень больше нового
                         if lvl > new_level and role.id == int(assign_role_id):
                             roles_to_remove.append(role)
 
-        for role in roles_to_remove:
-            await user.remove_roles(role)
+        # Удаляем роли, если они должны быть удалены
+        if roles_to_remove:
+            await user.remove_roles(*roles_to_remove)
+            await ctx.send(f"❌ Удалены роли: {', '.join([role.name for role in roles_to_remove])}.")
 
         # Назначаем новую роль или ближайшую роль для более низкого уровня
         if assigned_role:
