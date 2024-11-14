@@ -274,8 +274,8 @@ class Leveling(commands.Cog):
                 member = await ctx.guild.fetch_member(user_id)
 
                 embed.add_field(
-                    name=f"{rank}.",  # Здесь должно работать нормальное упоминание
-                    value=f"{member.mention} **Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
+                    name=f"{rank}. **Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",  # Здесь должно работать нормальное упоминание
+                    value=f"{member.mention}",
                     inline=False
                 )
             except disnake.NotFound:
