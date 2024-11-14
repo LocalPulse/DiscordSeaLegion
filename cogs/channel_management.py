@@ -30,7 +30,7 @@ class ChannelManagement(commands.Cog):
         except Exception as e:
             print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
 
-    @commands.command(name="set_channel")
+    @commands.command(name="set_channel1")
     @commands.has_permissions(administrator=True)
     async def set_channel(self, ctx, channel: disnake.TextChannel = None):
         if channel is None:

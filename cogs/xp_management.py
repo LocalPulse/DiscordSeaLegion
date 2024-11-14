@@ -25,7 +25,7 @@ class XPManagement(commands.Cog):
             level_up_message = f"🎉 {message.author.mention} достиг {new_level} уровня!"
             await message.channel.send(level_up_message)
 
-    @commands.command(name="leaderboard", description="Показывает топ-10 пользователей по опыту")
+    @commands.command(name="leaderboard1", description="Показывает топ-10 пользователей по опыту")
     async def leaderboard(self, ctx):
         if not user_data:
             await ctx.send("📉 На данный момент нет пользователей с накопленным опытом.")
