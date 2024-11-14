@@ -38,29 +38,19 @@ class Leveling(commands.Cog):
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
     def load_level_up_channels(self):
-        """
-        Загружает данные из JSON-файла и проверяет на ошибки.
-        Если обнаружены дублирующиеся гильдии, берется последняя запись.
-        """
-        global level_up_channels
-
+        """Load level-up channels from the JSON file."""
         if os.path.exists(CHANNELS_FILE):
             try:
                 with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
                     data = json.load(file)
-
-                    # Обработка дубликатов: последняя запись перезаписывает предыдущие
-                    level_up_channels = {}
-                    for guild_id, channel_id in data.items():
-                        level_up_channels[str(guild_id)] = channel_id
-
+                    # Avoid global, store channels in self.level_up_channels
+                    self.level_up_channels = {str(guild_id): channel_id for guild_id, channel_id in data.items()}
             except json.JSONDecodeError:
-                print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
-                level_up_channels = {}
-
+                print("[ERROR] Error reading JSON file. Using empty dictionary for channels.")
+                self.level_up_channels = {}
         else:
-            print("[INFO] Файл channels.json не найден. Используется пустой словарь.")
-            level_up_channels = {}
+            print("[INFO] channels.json file not found. Using empty dictionary.")
+            self.level_up_channels = {}
 
     def save_level_up_channels(self):
         """
