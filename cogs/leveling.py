@@ -38,16 +38,51 @@ class Leveling(commands.Cog):
                         user_data[int(user_id)] = {"level": int(level), "xp": int(xp)}
 
     def load_level_up_channels(self):
+        """
+        Загружает данные из JSON-файла и проверяет на ошибки.
+        Если обнаружены дублирующиеся гильдии, берется последняя запись.
+        """
+        global level_up_channels
+
         if os.path.exists(CHANNELS_FILE):
             try:
                 with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
-                    global level_up_channels
-                    level_up_channels = json.load(file)
+                    data = json.load(file)
+
+                    # Обработка дубликатов: последняя запись перезаписывает предыдущие
+                    level_up_channels = {}
+                    for guild_id, channel_id in data.items():
+                        level_up_channels[str(guild_id)] = channel_id
+
             except json.JSONDecodeError:
                 print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
                 level_up_channels = {}
+
         else:
+            print("[INFO] Файл channels.json не найден. Используется пустой словарь.")
             level_up_channels = {}
+
+    def save_level_up_channels(self):
+        """
+        Сохраняет данные в JSON-файл.
+        """
+        try:
+            with open(CHANNELS_FILE, "w", encoding="utf-8") as file:
+                json.dump(level_up_channels, file, indent=4)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
+
+
+    def set_level_up_channel(self, guild_id, channel_id):
+        """Устанавливает канал для заданной гильдии. Если гильдия уже существует, перезаписывает её."""
+        self.level_up_channels[str(guild_id)] = channel_id
+        self.save_level_up_channels()
+
+    async def send_message_to_channel(self, channel, message):
+        try:
+            await channel.send(message)
+        except Exception as e:
+            print(f"[ERROR] Ошибка при отправке сообщения: {e}")
 
     def load_voice_time_data(self):
         if os.path.exists(VOICE_TIME_FILE):
@@ -60,13 +95,6 @@ class Leveling(commands.Cog):
         else:
             print("[INFO] Файл voice_time_data.json не найден. Создается пустой словарь.")
             return {}
-
-    def save_level_up_channels(self):
-        try:
-            with open(CHANNELS_FILE, "w", encoding="utf-8") as file:
-                json.dump(level_up_channels, file, indent=4)
-        except Exception as e:
-            print(f"[ERROR] Ошибка при сохранении настроек каналов: {e}")
 
     def assign_role_based_on_level(self, member, new_level):
         user_roles = [role.id for role in member.roles]
@@ -111,17 +139,21 @@ class Leveling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        for guild_id, channel_id in level_up_channels.items():
-            guild = self.bot.get_guild(guild_id)
-            if guild:
-                level_up_channel = guild.get_channel(channel_id)
-                if level_up_channel:
-                    print(f"Канал для уровня в гильдии {guild.name}: {level_up_channel.name}")
-                    await self.send_message_to_channel(level_up_channel, "Бот успешно запущен и готов к использованию!")
-                else:
-                    print(f"Канал с ID {channel_id} не найден в гильдии {guild.name}")
+        self.load_level_up_channels()
+        for guild_id, channel_id in self.level_up_channels.items():
+            guild = self.bot.get_guild(int(guild_id))
+            if not guild:
+                print(f"[WARNING] Не удалось найти гильдию с ID {guild_id}, повторная попытка...")
+                guild = self.bot.get_guild(int(guild_id))  # Вторая попытка загрузки
+                if not guild:
+                    print(f"[ERROR] Гильдия с ID {guild_id} не найдена.")
+                    continue
+
+            level_up_channel = guild.get_channel(int(channel_id))
+            if not level_up_channel:
+                print(f"[ERROR] Канал с ID {channel_id} не найден в гильдии {guild.name}")
             else:
-                print(f"Гильдия с ID {guild_id} не найдена.")
+                await self.send_message_to_channel(level_up_channel, "Бот успешно запущен и готов к использованию!")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -151,10 +183,6 @@ class Leveling(commands.Cog):
                 level_up_channel = self.bot.get_channel(level_up_channels[guild_id])
                 if level_up_channel:
                     await self.send_message_to_channel(level_up_channel, level_up_message)
-                else:
-                    await self.send_message_to_channel(message.channel, level_up_message)
-            else:
-                await self.send_message_to_channel(message.channel, level_up_message)
 
         self.save_user_data()
 
@@ -286,28 +314,20 @@ class Leveling(commands.Cog):
         exp_range["max"] = max_exp
         await ctx.send(f"🔧 Диапазон получения опыта установлен: от {min_exp} до {max_exp} за сообщение.")
 
+
     @commands.command(name="set_channel")
     @commands.has_permissions(administrator=True)
     async def set_channel(self, ctx, channel: disnake.TextChannel = None):
         if channel is None:
-            await ctx.send(
-                "⚠️ Вы не указали канал. Пожалуйста, укажите текстовый канал, где бот будет отправлять сообщения о достижении уровня.\n"
-                "Пример использования: `!set_channel #канал`"
-            )
-            return
-
-        if not isinstance(channel, disnake.TextChannel):
-            await ctx.send(
-                "️⚠️ Указанный канал не является текстовым каналом. Пожалуйста, укажите текстовый канал.\n"
-                "Пример использования: `!set_channel #канал`"
-            )
+            await ctx.send("⚠️ Пожалуйста, укажите текстовый канал для уведомлений о достижении уровня.")
             return
 
         guild_id = ctx.guild.id
-        level_up_channels[guild_id] = channel.id
-        self.save_level_up_channels()
+        channel_id = channel.id
 
-        await ctx.send(f"✅ Канал для сообщений уровня на этом сервере установлен: {channel.mention}")
+        self.set_level_up_channel(guild_id, channel_id)  # Перезаписывает, если гильдия уже существует
+
+        await ctx.send(f"✅ Канал для сообщений уровня установлен: {channel.mention}")
 
     @commands.command(name="set_level_up_xp")
     @commands.has_permissions(administrator=True)
