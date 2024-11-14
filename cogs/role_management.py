@@ -125,7 +125,7 @@ class RoleManagement(commands.Cog):
         for role in roles_to_remove:
             if role and role in user.roles:
                 await user.remove_roles(role)
-                await ctx.send(f"❌ Удалена роль: {role.name} [{new_level}]")
+                await ctx.send(f"❌ Удалена роль: {role.name}")
 
         # Теперь назначаем роль для текущего уровня или ближайшего
         if assigned_role:
