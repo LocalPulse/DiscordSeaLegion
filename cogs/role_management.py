@@ -90,18 +90,27 @@ class RoleManagement(commands.Cog):
         new_level = user_data[user.id]["level"]
         new_xp = user_data[user.id]["xp"]
 
-        # Назначаем роли на основе текущего и всех уровней ниже
         user_roles = [role.id for role in user.roles]
         assigned_roles = []
+        roles_to_remove = []
 
         for check_role_id, levels in self.role_assignments.items():
             if int(check_role_id) in user_roles:
                 for lvl, assign_role_id in levels.items():
-                    if int(lvl) <= new_level:
-                        role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
-                        if role and role not in user.roles:
+                    # Проверяем, что роль ниже уровня
+                    role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+
+                    # Если уровень ниже нового уровня, добавляем роль в список для назначения
+                    if role and int(lvl) <= new_level:
+                        if role not in user.roles:
                             await user.add_roles(role)
                             assigned_roles.append(role)
+                    elif role and role in user.roles and int(lvl) > new_level:
+                        roles_to_remove.append(role)
+
+        for role in roles_to_remove:
+            if role and role in user.roles:
+                await user.remove_roles(role)
 
         if assigned_roles:
             role_names = ", ".join([role.name for role in assigned_roles])

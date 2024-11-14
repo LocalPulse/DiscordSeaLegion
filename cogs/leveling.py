@@ -86,18 +86,26 @@ class Leveling(commands.Cog):
             print("[INFO] Файл voice_time_data.json не найден. Создается пустой словарь.")
             return {}
 
-    def assign_role_based_on_level(self, member, new_level):
+    async def assign_role_based_on_level(self, member, new_level):
         user_roles = [role.id for role in member.roles]
         assigned_role = None
+        roles_to_remove = []
 
         for check_role_id, levels in self.role_assignments.items():
             if int(check_role_id) in user_roles:
-                assign_role_id = levels.get(str(new_level))
-                if assign_role_id:
-                    role = disnake.utils.get(member.guild.roles, id=int(assign_role_id))
-                    if role and role not in member.roles:
-                        return role
-        return None
+                for level, role_id in levels.items():
+                    if int(level) < new_level:
+                        role_to_remove = disnake.utils.get(member.guild.roles, id=int(role_id))
+                        if role_to_remove:
+                            roles_to_remove.append(role_to_remove)
+                    elif int(level) == new_level:
+                        assigned_role = disnake.utils.get(member.guild.roles, id=int(role_id))
+
+        for role in roles_to_remove:
+            if role and role in member.roles:
+                await member.remove_roles(role)
+
+        return assigned_role
 
     def save_exp_range(self):
         """Сохраняет данные о диапазоне XP в файл."""
