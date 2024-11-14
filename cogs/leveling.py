@@ -6,6 +6,7 @@ import json
 from config import user_data, exp_range, calculate_level
 from utils import load_roles, save_roles
 
+LVL_FILE = "lvl.txt"
 CHANNELS_FILE = "channels.json"
 VOICE_TIME_FILE = "voice_time_data.json"
 EXP_RANGE_FILE = "exp_range.json"
@@ -22,14 +23,14 @@ class Leveling(commands.Cog):
         self.load_level_up_channels()
 
     def save_user_data(self):
-        with open("lvl.txt", "w", encoding="utf-8") as file:
+        with open(LVL_FILE, "w", encoding="utf-8") as file:
             for user_id, data in user_data.items():
                 file.write(f"{user_id}:{data['level']}:{data['xp']}\n")
 
     def load_user_data(self):
         """Загружаем данные пользователей из текстового файла."""
-        if os.path.exists("lvl.txt"):
-            with open("lvl.txt", "r", encoding="utf-8") as file:
+        if os.path.exists(LVL_FILE):
+            with open(LVL_FILE, "r", encoding="utf-8") as file:
                 for line in file:
                     parts = line.strip().split(":")
                     if len(parts) == 3:
@@ -42,7 +43,6 @@ class Leveling(commands.Cog):
                 with open(CHANNELS_FILE, "r", encoding="utf-8") as file:
                     global level_up_channels
                     level_up_channels = json.load(file)
-                    print(level_up_channels)
             except json.JSONDecodeError:
                 print("[ERROR] Ошибка при чтении JSON файла. Используется пустой словарь для каналов.")
                 level_up_channels = {}
@@ -111,23 +111,17 @@ class Leveling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        """Убедитесь, что каналы доступны после того, как бот подключен к серверам."""
         for guild_id, channel_id in level_up_channels.items():
             guild = self.bot.get_guild(guild_id)
             if guild:
                 level_up_channel = guild.get_channel(channel_id)
                 if level_up_channel:
                     print(f"Канал для уровня в гильдии {guild.name}: {level_up_channel.name}")
+                    await self.send_message_to_channel(level_up_channel, "Бот успешно запущен и готов к использованию!")
                 else:
                     print(f"Канал с ID {channel_id} не найден в гильдии {guild.name}")
             else:
                 print(f"Гильдия с ID {guild_id} не найдена.")
-
-    async def send_message_to_channel(self, channel, message):
-        try:
-            await channel.send(message)
-        except Exception as e:
-            print(f"[ERROR] Ошибка при отправке сообщения: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -153,7 +147,7 @@ class Leveling(commands.Cog):
 
             guild_id = message.guild.id
             if guild_id in level_up_channels:
-                print(f"guild_id: ")
+                print(f"guild_id: {guild_id}")
                 level_up_channel = self.bot.get_channel(level_up_channels[guild_id])
                 if level_up_channel:
                     await self.send_message_to_channel(level_up_channel, level_up_message)
