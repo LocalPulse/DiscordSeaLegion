@@ -90,49 +90,50 @@ class RoleManagement(commands.Cog):
         new_xp = user_data[user.id]["xp"]
 
         user_roles = [role.id for role in user.roles]
-        assigned_role = None
-        closest_level = None
-        closest_role_id = None
+        roles_to_remove = []
 
-        # Проверим, есть ли у пользователя роли, которые выше или ниже его текущего уровня
+        # Удаляем роли, которые выше нового уровня
         for check_role_id, levels in self.role_assignments.items():
             if int(check_role_id) in user_roles:
-                # Найдем роль для нового уровня или ближайшую меньшую
                 for lvl, assign_role_id in levels.items():
-                    lvl = int(lvl)  # Уровень роли
-                    if lvl == new_level:
-                        assigned_role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
-                        break
-                    elif lvl < new_level:
-                        if closest_level is None or lvl > closest_level:
-                            closest_level = lvl
-                            closest_role_id = assign_role_id
-
-        # Удаляем все текущие роли, которые выше уровня нового
-        roles_to_remove = []
-        for role in user.roles:
-            for check_role_id, levels in self.role_assignments.items():
-                if int(check_role_id) in user_roles:
-                    for lvl, assign_role_id in levels.items():
-                        lvl = int(lvl)
-                        # Удаляем только те роли, которые имеют уровень больше нового
-                        if lvl > new_level and role.id == int(assign_role_id):
-                            roles_to_remove.append(role)
+                    lvl = int(lvl)
+                    if lvl > new_level:
+                        role_to_remove = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+                        if role_to_remove and role_to_remove in user.roles:
+                            roles_to_remove.append(role_to_remove)
 
         # Удаляем роли, если они должны быть удалены
         if roles_to_remove:
             await user.remove_roles(*roles_to_remove)
             await ctx.send(f"❌ Удалены роли: {', '.join([role.name for role in roles_to_remove])}.")
 
-        # Назначаем новую роль или ближайшую роль для более низкого уровня
+        # Теперь назначаем роль для нового уровня или ближайшую ниже
+        assigned_role = None
+        closest_role_id = None
+        closest_level = None
+
+        for check_role_id, levels in self.role_assignments.items():
+            if int(check_role_id) in user_roles:
+                for lvl, assign_role_id in levels.items():
+                    lvl = int(lvl)
+                    if lvl == new_level:
+                        assigned_role = disnake.utils.get(ctx.guild.roles, id=int(assign_role_id))
+                        break
+                    elif lvl < new_level:
+                        # Находим ближайшую роль
+                        if closest_level is None or lvl > closest_level:
+                            closest_level = lvl
+                            closest_role_id = assign_role_id
+
+        # Если мы нашли роль для нового уровня
         if assigned_role:
             if assigned_role not in user.roles:
                 await user.add_roles(assigned_role)
                 await ctx.send(
                     f"✅ {user.mention} получил роль для уровня {new_level}: **{assigned_role.name}**."
                 )
+        # Если роли для нового уровня нет, но есть ближайшая роль
         elif closest_role_id:
-            # Если роли для нового уровня нет, назначаем ближайшую роль для более низкого уровня
             assigned_role = disnake.utils.get(ctx.guild.roles, id=int(closest_role_id))
             if assigned_role and assigned_role not in user.roles:
                 await user.add_roles(assigned_role)
