@@ -11,7 +11,6 @@ voice_times = {}
 level_up_channels = {}
 voice_time_data = {}
 
-
 class VoiceExperience(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -103,7 +102,8 @@ class VoiceExperience(commands.Cog):
                 if member.id not in user_data:
                     user_data[member.id] = {"xp": 0, "level": 1}
 
-                user_data[member.id]["xp"] += xp_gained
+                if xp_gained > 0:  # Только добавляем XP если он больше 0
+                    user_data[member.id]["xp"] += xp_gained
 
                 if str(member.id) not in voice_time_data:
                     voice_time_data[str(member.id)] = 0
@@ -115,21 +115,14 @@ class VoiceExperience(commands.Cog):
                 if guild_id in level_up_channels:
                     channel_id = level_up_channels[guild_id]
                     channel = self.bot.get_channel(int(channel_id))
-                    if channel:
+                    if channel and xp_gained > 0:
                         await self.send_message_to_channel(channel,
                                                            f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
-                    else:
-                        print(
-                            f"[WARNING] Канал с ID {channel_id} не найден, отправка сообщения в первый текстовый канал.")
-                        await self.send_message_to_channel(member.guild.text_channels[0],
-                                                           f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
-                else:
-                    await self.send_message_to_channel(member.guild.text_channels[0],
-                                                       f"🎉 {member.mention} получил {xp_gained} XP за время в голосовом канале! 🕒")
 
                 del voice_times[member.id]
 
         elif after.channel is not None and before.channel is None:
+            # Обновляем время входа в канал
             voice_times[member.id] = time.time()
 
 
