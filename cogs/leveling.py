@@ -270,21 +270,22 @@ class Leveling(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         for rank, (user_id, data) in enumerate(sorted_users[:10], start=1):
-            member = ctx.guild.get_member(user_id)
+            member = await ctx.guild.fetch_member(user_id)
 
             if member:
+                # Если участник найден, то упоминаем его
                 embed.add_field(
-                    name=f"{rank}. {member.mention}",
+                    name=f"{rank}. {member.mention}",  # Здесь должно работать нормальное упоминание
                     value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
                     inline=False
                 )
             else:
+                # Если участник не найден на сервере, показываем ID пользователя
                 embed.add_field(
                     name=f"{rank}. Пользователь с ID <@{user_id}>",
                     value=f"**Уровень:** {data['level']} | **Опыт (XP):** {data['xp']}",
                     inline=False
                 )
-
 
         await ctx.send(embed=embed)
 
