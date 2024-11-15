@@ -7,6 +7,8 @@ from config import user_data
 
 LEVEL_UP_CHANNELS_FILE = "channels.json"
 VOICE_TIME_FILE = "voice_time_data.json"
+XP_PER_MINUTE = 5
+
 voice_times = {}
 level_up_channels = {}
 voice_time_data = {}
@@ -71,10 +73,9 @@ class VoiceExperience(commands.Cog):
                         voice_times[member.id] = time.time()
 
                     time_in_channel = time.time() - voice_times[member.id]
-                    xp_gained = int(time_in_channel // 60)
+                    xp_gained = int(time_in_channel // 60) * XP_PER_MINUTE
 
                     if xp_gained > 0:
-                        # Проверка на наличие пользователя в словаре user_data
                         if member.id not in user_data:
                             user_data[member.id] = {"xp": 0, "level": 1}
 
@@ -89,16 +90,15 @@ class VoiceExperience(commands.Cog):
 
     @check_voice_activity.before_loop
     async def before_check_voice_activity(self):
-        await self.bot.wait_until_ready()  # Ждем, пока бот подключится к серверам
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         if after.channel is None and before.channel is not None:
             if member.id in voice_times:
                 time_in_channel = time.time() - voice_times[member.id]
-                xp_gained = int(time_in_channel // 60)
+                xp_gained = int(time_in_channel // 60) * XP_PER_MINUTE
 
-                # Проверка на наличие пользователя в словаре user_data
                 if member.id not in user_data:
                     user_data[member.id] = {"xp": 0, "level": 1}
 
@@ -122,7 +122,6 @@ class VoiceExperience(commands.Cog):
                 del voice_times[member.id]
 
         elif after.channel is not None and before.channel is None:
-            # Обновляем время входа в канал
             voice_times[member.id] = time.time()
 
 
