@@ -1,0 +1,6 @@
+disnake
+python-dotenv
+os
+json
+random
+time
